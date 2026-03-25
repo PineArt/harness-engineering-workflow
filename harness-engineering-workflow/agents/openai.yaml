@@ -1,0 +1,7 @@
+interface:
+  display_name: "Harness Workflow"
+  short_description: "Start with Fast Tier Check, then run Ultra Lite, Lite, or Full Harness workflow"
+  default_prompt: "Use $harness-engineering-workflow when the task needs explicit owners, workflow artifacts, context packs, or gate review. Start with Fast Tier Check in SKILL.md. It can cover tiny features through Ultra Lite, but skip it for plain one-off coding with no reusable workflow surface."
+
+policy:
+  allow_implicit_invocation: false

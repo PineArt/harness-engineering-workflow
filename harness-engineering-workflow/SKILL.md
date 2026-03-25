@@ -1,0 +1,130 @@
+---
+name: harness-engineering-workflow
+description: "Use when the task explicitly needs a reusable Harness Engineering style workflow or skill: explicit owners, repo-as-record-system, role-based context packaging, mechanical quality gates, result acceptance, and entropy control. It can scale from Ultra Lite to Full. Do not use for plain one-off coding with no workflow artifact or validation surface."
+---
+
+# Harness Engineering Workflow
+
+Use this skill when the user needs a repeatable workflow or run sheet that is explicitly:
+- environment-first rather than prompt-first
+- grounded in repo-as-record-system and progressive context
+- enforced by mechanical checks, quality gates, and result acceptance
+- intended to scale beyond a one-off chat reply
+
+Do not use this skill for:
+- one-off casual brainstorming with no workflow output
+- pure code implementation requests that do not need workflow artifacts or gate logic
+- generic "use several agents" requests that do not need this operating model
+- tasks where there is no stable workspace, no artifacts, and no validation surface
+
+## Start Small
+
+For `Ultra Lite`, a single `Implementer` owner is usually enough.
+
+For `Lite`, start with these 4 roles:
+- `Orchestrator`
+- `Implementer`
+- `Critic`
+- `Quality Gate`
+
+Only add more roles such as `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
+
+Do not default to the full role set on small tasks.
+
+## Operating Rules
+
+- Human steers; agents execute.
+- Fix environment gaps before blaming the model.
+- Knowledge not encoded into the repo or task artifacts should be treated as unavailable.
+- Keep `AGENTS.md` short and navigational.
+- Prefer append-only context growth over repeatedly rewriting stable prefixes.
+- If a single agent is nearing context overload, split work into subagents or smaller owned tasks.
+- Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
+
+## What To Read
+
+- For a tiny feature or bugfix, read [references/feature-template-ultra-lite.md](references/feature-template-ultra-lite.md).
+- For a runnable midweight run sheet, read [references/workflow-template-lite.md](references/workflow-template-lite.md).
+- For the full operating model, role contracts, and escalation rules, read [references/workflow-template.md](references/workflow-template.md).
+- For role prompts, read [references/agent-prompts.md](references/agent-prompts.md).
+- For the only canonical gate rubric, read [references/checklists.md](references/checklists.md).
+- For canonical artifact fields and owners, read [references/artifact-registry.md](references/artifact-registry.md).
+
+## Quick Start
+
+1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
+2. Open only the file for that tier first.
+3. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first, then open [references/checklists.md](references/checklists.md) only at gate time.
+4. Open [references/artifact-registry.md](references/artifact-registry.md) only when a field name or artifact owner is unclear.
+5. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
+
+## Escalation Heuristics
+
+Escalate or redesign if:
+- agents are missing tooling or validation surfaces
+- key knowledge lives only in chat or human memory
+- outputs cannot be merged cleanly
+- review burden falls back to humans line by line
+- context grows faster than it is being summarized
+- quality gates fail on source fidelity, execution completeness, external feedback, or entropy control
+
+## Choose The Tier
+
+Use `Ultra Lite` when:
+- one owner can complete the work
+- one direct validation path is enough
+- no risk register or gate decision is needed
+
+Use `Lite` when:
+- you need a runnable midweight workflow
+- you can name owners for `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
+- one workflow needs structured risk scan and gate review
+
+Use `Full` when:
+- more than 4-5 distinct responsibilities are active
+- more than one workflow must converge in parallel
+- environment design or repo structure is part of the task
+- `Lite` starts needing repeated human interpretation to pass gate review
+
+## Fast Tier Check
+
+Start with `Ultra Lite` if all three are true:
+- one owner is enough
+- one validation path is enough
+- failure does not require a formal gate loop
+
+Start with `Full` immediately if any two are true:
+- more than one workflow must converge
+- environment or repo structure is part of the deliverable
+- you already expect 5 or more independent responsibilities
+- human decisions must be logged across multiple rounds
+
+Otherwise start with `Lite`.
+
+## Required Artifacts By Tier
+
+Ultra Lite:
+- one short goal/scope block
+- one owner
+- one validation path
+- one validation-failure action
+
+Lite:
+- one short `Task Brief`
+- one role owner table
+- one `Context Pack`
+- one `Task Graph`
+- one `Execution Output Record`
+- one `Risk Register`
+- one `Integration Ledger` with owner and evidence-source fields
+- one `Gate Decision`
+- one `Decision Log`
+
+Full:
+- everything in Lite
+- `Execution Environment Spec`
+- full workflow draft
+- `Published Version`
+- iteration notes
+
+Keep outputs structured and operational, not essay-like.
