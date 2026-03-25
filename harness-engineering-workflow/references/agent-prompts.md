@@ -223,12 +223,13 @@ Full:
 3. S2 Orchestrator produces Context Pack
 4. S2 Source Analyst produces Claims List / Evidence Map
 5. S2 Principle Mapper produces Principle Set
-6. S3 Workflow Designer produces Workflow Draft
-7. S4 Implementer executes and produces Execution Output Record
-8. S5 Critic produces Risk Register
-9. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
-10. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
-11. S7 Orchestrator appends the gate outcome to `Decision Log`
-12. S8 Template Editor produces the final template
-13. S8 Human Decision Maker freezes the version and appends `Decision Log`
+6. S3 Orchestrator produces Task Graph
+7. S3 Workflow Designer consumes Task Graph and produces Workflow Draft
+8. S4 Implementer executes and produces Execution Output Record
+9. S5 Critic produces Risk Register
+10. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
+11. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
+12. S7 Orchestrator appends the gate outcome to `Decision Log`
+13. S8 Template Editor produces the final template
+14. S8 Human Decision Maker freezes the version and appends `Decision Log`
 ```

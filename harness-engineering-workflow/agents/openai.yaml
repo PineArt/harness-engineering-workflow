@@ -1,7 +1,7 @@
 interface:
-  display_name: "Structured Execution Workflow"
-  short_description: "Use for multi-agent or gated execution work with explicit owners, context packs, workflow artifacts, and repo-backed validation"
-  default_prompt: "Use harness-engineering-workflow when the task needs a reusable execution workflow with explicit owners, context packs, workflow artifacts, structured risk review, gate decisions, or environment-first coordination. Start with Fast Tier Check in SKILL.md to choose Ultra Lite, Lite, or Full. Skip it for plain one-off coding with no reusable workflow surface."
+  display_name: "Harness Workflow"
+  short_description: "Use for Harness-style execution workflows with explicit owners, repo-backed artifacts, context packs, and gate review"
+  default_prompt: "Use harness-engineering-workflow when the task needs a Harness-style execution workflow with explicit owners, repo-backed artifacts, role-scoped context packs, structured risk review, gate decisions, or environment-first coordination. Start with Fast Tier Check in SKILL.md to choose Ultra Lite, Lite, or Full. Skip plain one-off coding that does not need workflow artifacts, validation surfaces, or repeatable operating rules."
 
 policy:
   allow_implicit_invocation: false

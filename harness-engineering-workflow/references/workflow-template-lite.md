@@ -56,7 +56,7 @@ Quality Gate |  |
 Notes:
 - The same person or the same agent may hold multiple responsibilities.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
-- If the work needs more than 4 independent owners, escalate directly to `Full`.
+- If the work needs more than 5 independent owners, escalate directly to `Full`.
 
 ## Step S2. Context Pack
 
@@ -164,7 +164,7 @@ Next Step:
 Record at least:
 - human decisions
 - conflict resolution
-- gate-requested rework or conditional release
+- gate-requested rework or `Conditional Pass` follow-up
 
 See [artifact-registry.md](artifact-registry.md) for the full field definitions.
 
@@ -229,7 +229,7 @@ Summarize or split into a subagent if any of the following becomes true:
 ## Escalate To Full If
 
 Escalate to [workflow-template.md](workflow-template.md) if any of the following is true:
-- the work needs more than 4 independent responsibilities
+- the work needs more than 5 independent responsibilities
 - more than 2 parallel workflows must converge at the same time
 - `Template Editor` or `Principle Mapper` is required for the final delivery
 - formal environment design or repo structure changes are required

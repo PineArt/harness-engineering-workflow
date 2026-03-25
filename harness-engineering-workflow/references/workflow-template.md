@@ -214,9 +214,11 @@ Method:
 - define human decision points
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
+- In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
 - `Task Graph`
+- `Workflow Draft` in `Full`, after `Task Graph` is published and `Workflow Designer` is active
 
 Acceptance:
 - every node has exactly one owner
@@ -506,14 +508,15 @@ Minimal execution order:
 3. `S2` `Orchestrator` produces `Context Pack`
 4. `S2` `Source Analyst` extracts claims and evidence from the article
 5. `S2` `Principle Mapper` compresses them into engineering principles
-6. `S3` `Workflow Designer` produces the stepwise template
-7. `S4` `Implementer` executes and produces `Execution Output Record`
-8. `S5` `Critic` produces `Risk Register`
-9. `S6` `Orchestrator` produces `Integration Ledger` and updates `Decision Log`
-10. `S7` `Quality Gate` decides whether the work passes gate review
-11. `S7` `Orchestrator` appends the gate outcome to `Decision Log`
-12. `S8` `Template Editor` packages the final template
-13. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
+6. `S3` `Orchestrator` produces `Task Graph`
+7. `S3` `Workflow Designer` consumes `Task Graph` and produces `Workflow Draft`
+8. `S4` `Implementer` executes and produces `Execution Output Record`
+9. `S5` `Critic` produces `Risk Register`
+10. `S6` `Orchestrator` produces `Integration Ledger` and updates `Decision Log`
+11. `S7` `Quality Gate` decides whether the work passes gate review
+12. `S7` `Orchestrator` appends the gate outcome to `Decision Log`
+13. `S8` `Template Editor` packages the final template
+14. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
 
 ## 11. Anti-Patterns
 

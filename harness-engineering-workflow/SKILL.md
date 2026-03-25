@@ -82,7 +82,7 @@ Use `Lite` when:
 - one workflow needs structured risk scan and gate review
 
 Use `Full` when:
-- more than 4-5 distinct responsibilities are active
+- 5 or more distinct responsibilities are active
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
 - `Lite` starts needing repeated human interpretation to pass gate review
