@@ -37,14 +37,14 @@ Other files should reference these gates by name instead of redefining them.
 - decision
 - next step or fallback
 
-### Gate Result Schema
+### Gate Decision Schema
 
 Gate Decision field names are canonical in `artifact-registry.md`.
 This file is canonical for gate verdict rules and replay semantics.
 
 ### Return Step Rules
 
-- `Return Step` may only target `S0` `S1` `S2` `S3` `S4` `S5` `S6` `S7`
+- `Return Step` may only target `S0` through `S7`
 - `S8` is publish-only and is never a valid rework target
 - `Fail` must always include a `Return Step`
 - `Fail` must include `Rework Owner`

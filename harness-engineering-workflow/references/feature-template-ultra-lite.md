@@ -1,18 +1,18 @@
 # Feature Template Ultra Lite
 
-适用场景：
-- 单个小 feature
-- 单个 bugfix
-- 小范围文档或配置修改
-- 不需要多 agent 并行
-- 不需要完整风险扫描和整合账本
+Use this when:
+- a single small feature
+- a single bugfix
+- a small documentation or configuration change
+- no parallel multi-agent work is needed
+- no full risk scan or integration ledger is needed
 
-不要用于：
-- 跨模块重构
-- 需要多个角色并行
-- 验证链路复杂
-- 需求边界不清
-- 预计会有多轮返工
+Do not use this for:
+- cross-module refactors
+- work that needs multiple roles in parallel
+- complex validation chains
+- unclear requirement boundaries
+- work that is likely to require multiple rework rounds
 
 ## 1. Fill This In
 
@@ -32,80 +32,97 @@ Done When:
 
 ## 2. Minimal Flow
 
-1. 写清 `Goal` 和 `Done When`
-2. 指定唯一 `Owner`
-3. 执行修改
-4. 用一个最直接的外部反馈完成验证
-5. 满足 `Done When` 就结束
+1. Write `Goal` and `Done When` clearly.
+2. Assign a single `Owner`.
+3. Execute the change.
+4. Validate with the most direct external feedback available.
+5. Stop once `Done When` is satisfied.
 
 ## 3. Default Rules
 
-- 不默认拆多 agent
-- 不默认写 `Risk Register`
-- 不默认写 `Integration Ledger`
-- 不默认开完整质量门
-- 优先用最短验证链路闭环
-- 人类只看结果，不逐行兜底
-- 默认 `Owner` 对应 `Implementer`
-- 只有当目标、范围或验收标准说不清时，才额外加 `Orchestrator`
-- 如果你需要 role prompt，先使用 `Implementer`；只有边界不清时再补 `Orchestrator`
+- Do not split into multiple agents by default.
+- Do not create a `Risk Register` by default.
+- Do not create an `Integration Ledger` by default.
+- Do not open the full quality gate by default.
+- Prefer the shortest validation loop that can close the task.
+- Humans review the result, not every line.
+- Default `Owner` maps to `Implementer`.
+- Add an `Orchestrator` only when the goal, scope, or acceptance criteria are still unclear.
+- If you need a role prompt, start with `Implementer`; add `Orchestrator` only when boundaries remain unclear.
 
 ## 4. Validation Options
 
-优先选一个最便宜、最直接的：
-- 单元测试
-- 页面手动/自动验证
+Pick the cheapest and most direct option first:
+- unit tests
+- manual or automated page verification
 - LSP / lint / typecheck
-- 日志或接口返回检查
-- 构建成功
+- logs or API response checks
+- successful build
 
 ## 5. If Validation Fails
 
-按下面顺序处理：
+Handle it in this order:
 
-1. 若范围不变、owner 不变、且仍可用同一条验证链路闭环，继续由当前 `Owner` 修正并重试一次。
-2. 若第二次仍失败，或开始需要第二个 owner、第二种验证来源、或更明确的风险记录，立即升级到 `workflow-template-lite.md`。
-3. 升级到 `Lite` 时，至少把以下字段原样带过去，作为 `Task Brief` 和 `Context Pack` 的种子：
+1. If the scope is unchanged, the owner is unchanged, and the same validation path can still close the loop, let the current `Owner` fix it and retry once.
+2. If the second attempt still fails, or the work starts to require a second owner, a second validation source, or more explicit risk tracking, escalate immediately to `workflow-template-lite.md`.
+3. When escalating to `Lite`, convert the Ultra Lite fields into the canonical Lite artifacts below instead of copying labels forward verbatim.
+
+`Task Brief` seed:
 
 ```text
-Goal:
-Scope:
-Constraints:
-Owner:
-Validation:
-Done When:
-Failure Learned:
+Goal: <Goal>
+Non-goals: <Out-of-scope items from Scope, or N/A>
+Constraints: <Constraints>
+Success Criteria: <Done When>
+Human Decision Points: <Boundary calls that need a human, or N/A>
+```
+
+`Context Pack` seed:
+
+```text
+Core Context: <Current implementation facts and in-scope area>
+Optional Context: <Related files, tests, logs, or prior notes>
+Forbidden Scope: <Out-of-scope items from Scope>
+Stable Prefix: <Reuse the current task wording if it is already stable>
+Required Tools: <Validation path and required tools>
+```
+
+`Role Owner Table` seed:
+
+```text
+Role | Owner | Notes
+Implementer | <Owner> | Carried forward from Ultra Lite
 ```
 
 ## 6. Escalate To Lite If
 
-出现任一情况就升级到 `workflow-template-lite.md`：
-- 需要第二个 owner
-- 需要多个验证来源
-- 出现两次以上返工
-- 范围开始扩张
-- 需要人工裁决需求边界
-- 需要保留明确风险记录
-- 只能依赖弱验证，例如仅 build 成功或非常粗的人工目测
+Escalate to `workflow-template-lite.md` if any of the following is true:
+- a second owner is needed
+- multiple validation sources are needed
+- more than 2 rework rounds have already happened
+- the scope starts expanding
+- requirement boundaries need human arbitration
+- explicit risk tracking needs to be preserved
+- the work can rely only on weak validation, such as a successful build or very rough manual eyeballing
 
 ## 7. Example
 
 ```text
 Goal:
-修复 gallery 页面日期筛选默认值错误
+Fix the incorrect default value for the date filter on the gallery page.
 
 Scope:
-只改前端筛选初始化逻辑，不改后端 API
+Change only the frontend filter initialization logic. Do not change the backend API.
 
 Constraints:
-不改现有接口契约；不影响其他筛选项
+Do not change the existing API contract. Do not affect other filters.
 
 Owner:
 Implementer
 
 Validation:
-本地打开页面，确认默认日期正确；运行相关前端测试
+Open the page locally, confirm the default date is correct, and run the related frontend tests.
 
 Done When:
-页面默认日期正确，测试通过，无控制台报错
+The page shows the correct default date, the tests pass, and there are no console errors.
 ```

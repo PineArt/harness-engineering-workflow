@@ -13,6 +13,7 @@ If this file is unavailable during execution, restore it from version control be
 | `Execution Environment Spec` | `Orchestrator` | `S1` | `Full` |
 | `Context Pack` | `Orchestrator` | `S2` | `Lite`, `Full` |
 | `Task Graph` | `Orchestrator` | `S3` | `Lite`, `Full` |
+| `Workflow Draft` | `Workflow Designer` | `S3` | `Full` |
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
 | `Risk Register` | `Critic` | `S5` | `Lite`, `Full` |
 | `Integration Ledger` | `Orchestrator` | `S6` | `Lite`, `Full` |
@@ -69,6 +70,19 @@ Depends On:
 Outputs:
 Writable Area:
 Fallback:
+```
+
+### `Workflow Draft`
+
+```text
+Step:
+Objective:
+Inputs:
+Method:
+Outputs:
+Acceptance:
+Risks:
+Escalation:
 ```
 
 ### `Execution Output Record`
@@ -133,6 +147,7 @@ Record at least:
 - gate-requested rework
 - conditional-pass follow-up obligations
 - final gate outcomes before rework or publish
+- the gate outcome appended by `Orchestrator` after `S7`
 
 ### `Gate Decision`
 

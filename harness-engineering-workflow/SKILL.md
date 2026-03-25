@@ -1,6 +1,6 @@
 ---
 name: harness-engineering-workflow
-description: "Use when the task explicitly needs a reusable Harness Engineering style workflow or skill: explicit owners, repo-as-record-system, role-based context packaging, mechanical quality gates, result acceptance, and entropy control. It can scale from Ultra Lite to Full. Do not use for plain one-off coding with no workflow artifact or validation surface."
+description: "Use when the task needs a reusable execution workflow with explicit owners, repo-backed artifacts, role-scoped context packs, structured risk review, gate decisions, or environment-first coordination across one or more agents. Start with Fast Tier Check to choose Ultra Lite, Lite, or Full. Do not use for plain one-off coding that does not need workflow artifacts, validation surfaces, or repeatable operating rules."
 ---
 
 # Harness Engineering Workflow
@@ -54,9 +54,10 @@ Do not default to the full role set on small tasks.
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
 2. Open only the file for that tier first.
-3. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first, then open [references/checklists.md](references/checklists.md) only at gate time.
-4. Open [references/artifact-registry.md](references/artifact-registry.md) only when a field name or artifact owner is unclear.
+3. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
+4. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
 5. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
+6. Open [references/checklists.md](references/checklists.md) at gate time.
 
 ## Escalation Heuristics
 
