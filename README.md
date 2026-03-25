@@ -2,7 +2,7 @@
 
 This repository contains a Codex skill for running a structured Harness Engineering workflow. The workflow is designed for tasks that need explicit owners, workflow artifacts, validation gates, and a repo-centered operating model instead of a one-off chat response.
 
-The installable skill lives in [harness-engineering-workflow](C:/Users/wangsong/Desktop/harness-engineering/harness-engineering-workflow). The repository root is for packaging and documentation; it is not itself a skill folder.
+The installable skill lives in [harness-engineering-workflow](./harness-engineering-workflow). The repository root is for packaging and documentation; it is not itself a skill folder.
 
 ## Skill Summary
 
@@ -40,7 +40,7 @@ PowerShell:
 
 ```powershell
 Copy-Item -Recurse -Force `
-  "C:\Users\wangsong\Desktop\harness-engineering\harness-engineering-workflow" `
+  ".\harness-engineering-workflow" `
   "$HOME\.codex\skills\harness-engineering-workflow"
 ```
 
@@ -57,15 +57,15 @@ After installation, restart Codex so the new skill is discovered.
 Validate the source skill directory with the standard quick validator:
 
 ```powershell
-python C:\Users\wangsong\.codex\skills\.system\skill-creator\scripts\quick_validate.py `
-  C:\Users\wangsong\Desktop\harness-engineering\harness-engineering-workflow
+python "$HOME\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
+  ".\harness-engineering-workflow"
 ```
 
 Validate the installed copy the same way:
 
 ```powershell
-python C:\Users\wangsong\.codex\skills\.system\skill-creator\scripts\quick_validate.py `
-  C:\Users\wangsong\.codex\skills\harness-engineering-workflow
+python "$HOME\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
+  "$HOME\.codex\skills\harness-engineering-workflow"
 ```
 
 Expected result:
@@ -86,7 +86,7 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 
 ## Source Of Truth
 
-- Human-facing entrypoint: [README.md](C:/Users/wangsong/Desktop/harness-engineering/README.md)
-- Skill entrypoint: [SKILL.md](C:/Users/wangsong/Desktop/harness-engineering/harness-engineering-workflow/SKILL.md)
-- UI metadata: [agents/openai.yaml](C:/Users/wangsong/Desktop/harness-engineering/harness-engineering-workflow/agents/openai.yaml)
-- Workflow references: [references/](C:/Users/wangsong/Desktop/harness-engineering/harness-engineering-workflow/references)
+- Human-facing entrypoint: [README.md](./README.md)
+- Skill entrypoint: [SKILL.md](./harness-engineering-workflow/SKILL.md)
+- UI metadata: [agents/openai.yaml](./harness-engineering-workflow/agents/openai.yaml)
+- Workflow references: [references/](./harness-engineering-workflow/references)
