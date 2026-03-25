@@ -1,7 +1,7 @@
 interface:
   display_name: "Harness Workflow"
-  short_description: "Use for Harness-style execution workflows with explicit owners, repo-backed artifacts, context packs, and gate review"
-  default_prompt: "Use harness-engineering-workflow when the task needs a Harness-style execution workflow with explicit owners, repo-backed artifacts, role-scoped context packs, structured risk review, gate decisions, or environment-first coordination. Start with Fast Tier Check in SKILL.md to choose Ultra Lite, Lite, or Full. Skip plain one-off coding that does not need workflow artifacts, validation surfaces, or repeatable operating rules."
+  short_description: "Use for repeatable Harness run sheets with explicit owners, repo-backed artifacts, role-scoped context packs, structured risk review, and gate review"
+  default_prompt: "Use harness-engineering-workflow when the task fits the Harness-style execution workflow described in SKILL.md, especially when it needs a repeatable run sheet, explicit owners, repo-backed artifacts, role-scoped context packs, or gate review. Start with Fast Tier Check in SKILL.md: choose Ultra Lite when one owner and one validation path are enough, choose Full when two or more Full signals are already true, otherwise choose Lite. Do not use it for plain one-off coding that does not need workflow artifacts, validation surfaces, or repeatable operating rules."
 
 policy:
   allow_implicit_invocation: false

@@ -82,7 +82,7 @@ Use `Lite` when:
 - one workflow needs structured risk scan and gate review
 
 Use `Full` when:
-- 5 or more distinct responsibilities are active
+- 5 or more distinct workflow roles need active ownership
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
 - `Lite` starts needing repeated human interpretation to pass gate review
@@ -97,7 +97,7 @@ Start with `Ultra Lite` if all three are true:
 Start with `Full` immediately if any two are true:
 - more than one workflow must converge
 - environment or repo structure is part of the deliverable
-- you already expect 5 or more independent responsibilities
+- you already expect 5 or more distinct workflow roles to need active ownership
 - human decisions must be logged across multiple rounds
 
 Otherwise start with `Lite`.
@@ -126,6 +126,6 @@ Full:
 - `Execution Environment Spec`
 - full workflow draft
 - `Published Version`
-- iteration notes
+- `Next Iteration Notes`
 
 Keep outputs structured and operational, not essay-like.

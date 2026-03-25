@@ -15,6 +15,8 @@ Default first-run order:
 
 ## Step S0. Task Brief
 
+`Orchestrator` owns this step and opens `Decision Log` here.
+
 ```text
 Goal:
 
@@ -28,6 +30,8 @@ Human Decision Points:
 ```
 
 ## Step S1. Role Set And Owners
+
+`Execution Environment Spec` is `Full`-only. Lite does not require that artifact unless the work is escalating.
 
 `Lite` must assign at least these 4 responsibilities by default:
 
@@ -56,7 +60,7 @@ Quality Gate |  |
 Notes:
 - The same person or the same agent may hold multiple responsibilities.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
-- If the work needs more than 5 independent owners, escalate directly to `Full`.
+- If the work needs 5 or more distinct workflow roles to have active ownership, escalate directly to `Full`.
 
 ## Step S2. Context Pack
 
@@ -135,7 +139,7 @@ See [artifact-registry.md](artifact-registry.md) for the full field definitions.
 ## Step S6. Integration Ledger And Decision Log
 
 During integration, `Orchestrator` must maintain both `Integration Ledger` and `Decision Log`.
-Do not collapse everything into one flattened unified draft.
+Do not replace the ledger and decision log with one flattened summary that drops ownership or evidence fields.
 After `S7`, `Orchestrator` must append the gate outcome to the same `Decision Log` before rework or publish.
 
 `Integration Ledger`:
@@ -188,7 +192,7 @@ Rules:
 - `S8` is the publish step and is never a valid rework target.
 - `Fail` must include `Return Step` and `Rework Owner`.
 - `Conditional Pass` must include `Return Step`, `Rework Owner`, `Re-gate Owner`, `Re-gate Condition`, `Re-gate Evidence`, and `Due Before`.
-- `Pass` should set `Return Step`, `Rework Owner`, and all re-gate fields to `N/A`.
+- `Pass` must set `Return Step`, `Rework Owner`, and all re-gate fields to `N/A`.
 - Rework must rerun from `Return Step` through `S7`, and must refresh every artifact produced by that step and every downstream step.
 
 If `checklists.md` is temporarily unavailable:
@@ -203,12 +207,15 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 
 ## Step S8. Publish
 
+In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
+
 Before publish, at minimum have:
 
 - [ ] `Task Brief`
 - [ ] role owner table
 - [ ] `Context Pack`
 - [ ] `Task Graph`
+- [ ] `Execution Output Record`
 - [ ] `Risk Register`
 - [ ] `Integration Ledger`
 - [ ] `Gate Decision`
@@ -229,9 +236,11 @@ Summarize or split into a subagent if any of the following becomes true:
 ## Escalate To Full If
 
 Escalate to [workflow-template.md](workflow-template.md) if any of the following is true:
-- the work needs more than 5 independent responsibilities
-- more than 2 parallel workflows must converge at the same time
+- the work needs 5 or more distinct workflow roles to have active ownership
+- more than 1 parallel workflow must converge at the same time
 - `Template Editor` or `Principle Mapper` is required for the final delivery
 - formal environment design or repo structure changes are required
 - a risk item remains open for more than 2 rounds
 - gate output starts depending on extensive human interpretation instead of a fixed schema
+
+This section describes escalation conditions after work has started. For the initial selection shortcut, use `Fast Tier Check` in `SKILL.md`.

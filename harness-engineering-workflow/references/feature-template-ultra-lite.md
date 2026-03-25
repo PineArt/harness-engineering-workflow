@@ -91,7 +91,10 @@ Required Tools: <Validation path and required tools>
 
 ```text
 Role | Owner | Notes
+Orchestrator | <Assign if needed for boundary clarification> | Add when Lite needs explicit coordination
 Implementer | <Owner> | Carried forward from Ultra Lite
+Critic | <Assign> | Required in Lite
+Quality Gate | <Assign> | Required in Lite
 ```
 
 ## 6. Escalate To Lite If
@@ -99,11 +102,11 @@ Implementer | <Owner> | Carried forward from Ultra Lite
 Escalate to `workflow-template-lite.md` if any of the following is true:
 - a second owner is needed
 - multiple validation sources are needed
-- more than 2 rework rounds have already happened
+- the second rework round would be needed
 - the scope starts expanding
 - requirement boundaries need human arbitration
 - explicit risk tracking needs to be preserved
-- the work can rely only on weak validation, such as a successful build or very rough manual eyeballing
+- the only available validation is a weak validation path from Section 4, such as a successful build or a coarse manual check
 
 ## 7. Example
 

@@ -108,6 +108,8 @@ AI-friendly tools to prioritize:
 
 Artifact schemas and ownership are canonical in `artifact-registry.md`.
 
+For escalation thresholds, count distinct workflow roles that need active ownership in the current run, not task count or subtask count.
+
 ## 5. Phase-by-Phase Workflow
 
 ### Step S0. Task Brief
@@ -389,6 +391,10 @@ Decision Log Owner:
 - produced by `Orchestrator` by default
 - if `Human Decision Maker` exists, that role's final decision must be appended to the same `Decision Log`
 
+Published Version Owner:
+- produced by `Template Editor` by default
+- if a separate publish owner is assigned for the run, that owner may publish instead
+
 Decision Log Schema:
 - `Decision`
 - `Decision Owner`
@@ -417,7 +423,7 @@ All agents must obey:
 - do not modify the shared final-draft area unless explicitly authorized
 - do not claim completion without meeting acceptance criteria
 
-Suggested unified output fields:
+Suggested unified output fields for analysis, design, and execution roles:
 
 ```text
 Objective
@@ -429,6 +435,8 @@ Risks
 Escalation
 Fact / Inference / Open Question
 ```
+
+When a role is required to produce a canonical artifact schema such as `Gate Decision` or `Decision Log`, that role-specific schema overrides the default field set above.
 
 ## 7. Quality Gates
 

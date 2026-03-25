@@ -8,7 +8,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
 - `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
 - `Lite` or `Full`: add `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them
-- `Full`: escalate only when environment design, multi-workflow convergence, or more than 5 independent responsibilities are part of the task itself
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership, or repeated human interpretation in Lite becomes part of the task
+
+For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
 ## Shared Rules
 
@@ -17,7 +19,7 @@ All agents use the following shared rules:
 ```text
 You are responsible only for the problem defined by your current role. Do not overstep into final arbitration.
 Every conclusion must be labeled as Fact / Inference / Open Question.
-Always output the fixed fields: Objective / Inputs / Method / Outputs / Acceptance / Risks / Escalation.
+Use the fixed fields Objective / Inputs / Method / Outputs / Acceptance / Risks / Escalation by default, unless your role is required to output a canonical artifact schema such as `Gate Decision` or `Decision Log`.
 If tools, structure, constraints, knowledge, or feedback loops are missing, call that out explicitly.
 If sources are insufficient, do not fill the gap with a definite conclusion.
 Prefer tools and external feedback to establish factual anchors. Do not rely only on text-only reasoning.
@@ -156,6 +158,7 @@ Every `Fail` must identify a specific rework step, and `Return Step` may only be
 `S8` is the publish step and is never a valid rework target.
 Every `Fail` must include `Rework Owner`.
 Every `Conditional Pass` must include `Return Step`, `Rework Owner`, `Re-gate Owner`, `Re-gate Condition`, `Re-gate Evidence`, and `Due Before`.
+Every `Pass` must set `Return Step`, `Rework Owner`, and all re-gate fields to `N/A`.
 Rework must rerun from `Return Step` through `S7`, and must refresh every artifact produced by that step and every downstream step.
 Do not give vague conclusions.
 ```
@@ -206,7 +209,7 @@ Ultra Lite:
 2. If boundaries are unclear, add Orchestrator to clarify Goal / Scope / Done When
 
 Lite:
-1. S0 Orchestrator produces Task Brief
+1. S0 Orchestrator produces Task Brief and opens `Decision Log`
 2. S1 Orchestrator fills the role owner table
 3. S2 Orchestrator produces Context Pack
 4. S3 Orchestrator writes Task Graph
@@ -215,7 +218,7 @@ Lite:
 7. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
 8. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
 9. S7 Orchestrator appends the gate outcome to `Decision Log`
-10. S8 verify required artifacts before publish
+10. S8 Orchestrator verifies required artifacts before publish
 
 Full:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`

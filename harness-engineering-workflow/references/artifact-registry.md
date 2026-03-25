@@ -16,6 +16,8 @@ If this file is unavailable during execution, restore it from version control be
 | `Workflow Draft` | `Workflow Designer` | `S3` | `Full` |
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
 | `Risk Register` | `Critic` | `S5` | `Lite`, `Full` |
+| `Unified Draft` | `Orchestrator` | `S6` | `Full` |
+| `Open Questions` | `Orchestrator` | `S6` | `Full` |
 | `Integration Ledger` | `Orchestrator` | `S6` | `Lite`, `Full` |
 | `Decision Log` | `Orchestrator` maintains; `Human Decision Maker` appends | `S0`, `S6`, `S7`, `S8` | `Lite`, `Full` |
 | `Gate Decision` | `Quality Gate` | `S7` | `Lite`, `Full` |
@@ -105,6 +107,18 @@ Rules:
 ### `Risk Register`
 
 ```text
+Risk Register:
+- Risk:
+  Severity:
+  Evidence:
+  Owner:
+  Required Action:
+  Status:
+```
+
+Entry fields:
+
+```text
 Risk:
 Severity:
 Evidence:
@@ -117,6 +131,24 @@ Status:
 - `Open`
 - `Mitigating`
 - `Closed`
+
+### `Unified Draft`
+
+```text
+Summary:
+Integrated Artifacts:
+Resolved Conflicts:
+Outstanding Risks:
+```
+
+### `Open Questions`
+
+```text
+Question:
+Why It Is Open:
+Owner:
+Next Step:
+```
 
 ### `Integration Ledger`
 
@@ -170,7 +202,7 @@ Field rules:
 - `S8` is publish-only and is never a valid rework target
 - `Owner` is the gate reviewer owner
 - `Rework Owner` is the owner who must execute the corrective action for `Fail` or `Conditional Pass`
-- `Pass` should use `N/A` for `Return Step`, `Rework Owner`, and all re-gate fields
+- `Pass` must use `N/A` for `Return Step`, `Rework Owner`, and all re-gate fields
 - `Fail` must include `Return Step` and `Rework Owner`, and should use `N/A` for all re-gate fields
 - `Conditional Pass` must include `Return Step`, `Rework Owner`, and all re-gate fields
 - for `Conditional Pass`, `Return Step` should point to the remediation step that must complete before re-gate; use `S7` only if the only missing action is refreshed gate evidence
