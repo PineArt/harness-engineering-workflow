@@ -13,6 +13,17 @@ The installable skill lives in [harness-engineering-workflow](./harness-engineer
 
 Use this skill when the task needs a reusable workflow with tiering from `Ultra Lite` to `Full`, plus role ownership, context packaging, gate review, and result acceptance.
 
+## Role Mapping
+
+There is no formal `Planner` role in this workflow.
+
+Planning responsibilities are split across:
+
+- `Orchestrator`: defines goals, splits work, assigns owners, and converges outputs
+- `Workflow Designer`: designs workflow steps, dependencies, and fallbacks when the `Full` tier needs a dedicated workflow-design role
+
+In practice, `Planner` maps most closely to `Orchestrator + Workflow Designer`, not to a separate standalone role.
+
 ## Repository Layout
 
 ```text
