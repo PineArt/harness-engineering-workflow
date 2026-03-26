@@ -155,6 +155,8 @@ Method:
 - define status, version, and log fields
 - define read and write boundaries
 - define `Role Owner Table`
+- mark whether the run is exploration-only or intended for final publish
+- enforce tier-specific owner separation before downstream work starts
 
 Outputs:
 - `Execution Environment Spec`
@@ -164,6 +166,9 @@ Acceptance:
 - all agents use the same skeleton
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
+- a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
+- in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
+- in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 
 Fallback:
 - if outputs cannot be merged cleanly, fix the environment before continuing
@@ -408,6 +413,7 @@ Acceptance:
 - traceable
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
+- exploration-only `Full` runs may inform the final publish workflow, but they may not satisfy final `Boundary Integrity` on their own
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton

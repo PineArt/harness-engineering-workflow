@@ -11,7 +11,9 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] key knowledge is in repo or task artifacts
 - [ ] `AGENTS.md` is short and navigational
 - [ ] tools exist for diagnostics, testing, or runtime feedback
-- [ ] each role has a unique owner
+- [ ] each role has an explicit owner
+- [ ] any `Lite` workflow intended for publish uses at least 2 distinct owners
+- [ ] any `Full` workflow intended for publish uses at least 3 distinct owners
 - [ ] parallel tasks do not share the same writable area
 
 ## Quality Gates
@@ -21,6 +23,8 @@ Other files should reference these gates by name instead of redefining them.
 - `Pass`: all blocking gates pass, and any remaining gaps are minor documentation cleanup.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
+- For `Lite` final publish, use `Fail` if the workflow has only 1 distinct owner, or if `Implementer` also owns `Quality Gate`.
+- For `Full` final publish, use `Fail` if the workflow has fewer than 3 distinct owners, if `Implementer` shares an owner with `Critic` or `Quality Gate`, or if `Quality Gate` also owns `Orchestrator`.
 
 ### Blocking Gates
 
@@ -68,6 +72,12 @@ This file is canonical for gate verdict rules and replay semantics.
 ### Boundary Integrity
 
 - [ ] roles are not overlapping excessively
+- [ ] single-owner `Lite` is marked exploration-only and is not used as the final publish workflow
+- [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
+- [ ] if `Critic` and `Quality Gate` share an owner, the role table notes explain why stronger separation is unnecessary
+- [ ] publishable `Full` workflows use at least 3 distinct owners
+- [ ] `Implementer`, `Critic`, and `Quality Gate` have different owners for any publishable `Full` workflow
+- [ ] `Quality Gate` does not share an owner with `Orchestrator` for any publishable `Full` workflow
 - [ ] no agent is silently making final human decisions
 - [ ] write ownership is clear
 

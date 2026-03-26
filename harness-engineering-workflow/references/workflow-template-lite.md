@@ -58,7 +58,10 @@ Quality Gate |  |
 ```
 
 Notes:
-- The same person or the same agent may hold multiple responsibilities.
+- The same person or the same agent may hold multiple responsibilities during exploration, but that is not the default publish posture for `Lite`.
+- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners.
+- In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
+- `Critic` and `Quality Gate` may be combined only when the notes record why stronger separation is unnecessary for this task.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
 - If the work needs 5 or more distinct workflow roles to have active ownership, escalate directly to `Full`.
 
@@ -208,11 +211,13 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 ## Step S8. Publish
 
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
+Single-owner `Lite` is exploration-only. It may produce drafts and intermediate artifacts, but it may not satisfy final `Boundary Integrity` for publish.
 
 Before publish, at minimum have:
 
 - [ ] `Task Brief`
 - [ ] role owner table
+- [ ] at least 2 distinct role owners
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

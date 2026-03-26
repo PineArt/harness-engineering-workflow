@@ -95,6 +95,17 @@ Use $harness-engineering-workflow to plan this change with explicit owners and a
 
 The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`, `Lite`, or `Full`.
 
+## Tier Guardrails
+
+- `Ultra Lite` is for low-risk, tightly bounded work where 1 owner and 1 strong validation path are enough for final publish.
+- Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
+- `Lite` final publish requires at least 2 distinct owners.
+- In publishable `Lite`, `Implementer` may not also own `Quality Gate`.
+- `Full` final publish requires at least 3 distinct owners.
+- In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.
+- In publishable `Full`, `Quality Gate` may not also own `Orchestrator`.
+- Exploration-only runs are allowed in any tier, but they do not satisfy final `Boundary Integrity` for publish by themselves.
+
 ## Source Of Truth
 
 - Human-facing entrypoint: [README.md](./README.md)

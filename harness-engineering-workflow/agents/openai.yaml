@@ -4,4 +4,4 @@ interface:
   default_prompt: "Use harness-engineering-workflow when the task fits the Harness-style execution workflow described in SKILL.md, especially when it needs a repeatable run sheet, explicit owners, repo-backed artifacts, role-scoped context packs, or gate review. Start with Fast Tier Check in SKILL.md: choose Ultra Lite when one owner and one validation path are enough, choose Full when two or more Full signals are already true, otherwise choose Lite. Do not use it for plain one-off coding that does not need workflow artifacts, validation surfaces, or repeatable operating rules."
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -6,6 +6,7 @@ Use this when:
 - a small documentation or configuration change
 - no parallel multi-agent work is needed
 - no full risk scan or integration ledger is needed
+- one owner and one direct validation path are enough to justify final publish
 
 Do not use this for:
 - cross-module refactors
@@ -13,6 +14,7 @@ Do not use this for:
 - complex validation chains
 - unclear requirement boundaries
 - work that is likely to require multiple rework rounds
+- changes that affect correctness-critical behavior such as integrity, durability, recovery, ordering, security, or externally visible contract semantics
 
 ## 1. Fill This In
 
@@ -44,11 +46,13 @@ Done When:
 - Do not create a `Risk Register` by default.
 - Do not create an `Integration Ledger` by default.
 - Do not open the full quality gate by default.
+- `Ultra Lite` is intentionally single-owner. Do not simulate role separation inside this tier; escalate instead.
 - Prefer the shortest validation loop that can close the task.
 - Humans review the result, not every line.
 - Default `Owner` maps to `Implementer`.
 - Add an `Orchestrator` only when the goal, scope, or acceptance criteria are still unclear.
 - If you need a role prompt, start with `Implementer`; add `Orchestrator` only when boundaries remain unclear.
+- A final publish from `Ultra Lite` is acceptable only when the task remains low-risk, tightly bounded, and closed by one strong validation path.
 
 ## 4. Validation Options
 
@@ -58,6 +62,10 @@ Pick the cheapest and most direct option first:
 - LSP / lint / typecheck
 - logs or API response checks
 - successful build
+
+Rules:
+- A successful build alone is not enough for correctness-critical changes.
+- If validation depends on more than one independent signal to be credible, escalate to `workflow-template-lite.md`.
 
 ## 5. If Validation Fails
 
@@ -107,6 +115,8 @@ Escalate to `workflow-template-lite.md` if any of the following is true:
 - requirement boundaries need human arbitration
 - explicit risk tracking needs to be preserved
 - the only available validation is a weak validation path from Section 4, such as a successful build or a coarse manual check
+- the task affects correctness-critical behavior such as integrity, durability, recovery, ordering, security, or externally visible contract semantics
+- the task would need role separation to make the final publish decision credible
 
 ## 7. Example
 
