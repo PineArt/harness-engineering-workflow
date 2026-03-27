@@ -98,11 +98,11 @@ Required Tools: <Validation path and required tools>
 `Role Owner Table` seed:
 
 ```text
-Role | Owner | Notes
-Orchestrator | <Assign if needed for boundary clarification> | Add when Lite needs explicit coordination
-Implementer | <Owner> | Carried forward from Ultra Lite
-Critic | <Assign> | Required in Lite
-Quality Gate | <Assign> | Required in Lite
+Role | Owner | Agent ID | Shared? | Notes
+Orchestrator | <Assign if needed for boundary clarification> | <N/A or delegated id> | <Yes/No> | Add when Lite needs explicit coordination
+Implementer | <Owner> | <N/A or delegated id> | <Yes/No> | Carried forward from Ultra Lite
+Critic | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
+Quality Gate | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
 ```
 
 ## 6. Escalate To Lite If

@@ -6,9 +6,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
-- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
+- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; if delegation is available and the run is publishable, assign at least 2 distinct subagents across the required separated owners
 - `Lite` or `Full`: add `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them
-- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership, or repeated human interpretation in Lite becomes part of the task
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership, or repeated human interpretation in Lite becomes part of the task; if delegation is available and the run is publishable, assign at least 3 distinct subagents across the required separated owners
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
@@ -24,6 +24,7 @@ If tools, structure, constraints, knowledge, or feedback loops are missing, call
 If sources are insufficient, do not fill the gap with a definite conclusion.
 Prefer tools and external feedback to establish factual anchors. Do not rely only on text-only reasoning.
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
+If publish separation requires distinct delegated owners and delegation is available, create or request that split before deep execution starts.
 If context starts to overload, actively recommend a subagent or subtask split instead of stuffing more into the same window.
 ```
 
@@ -36,13 +37,14 @@ Tasks:
 1. Compress the user goal into a single Task Brief.
 2. Define Non-goals, Constraints, and Success Criteria.
 3. Design the Task Graph, including parallel blocks, serial blocks, and human decision points.
-4. Assign one unique owner to each agent, and define named `Outputs` plus one unique `Writable Area` for each task.
+4. Assign one unique owner to each agent, record delegated agent identifiers where available, and define named `Outputs` plus one unique `Writable Area` for each task.
 5. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
 6. Integrate the outputs from all agents at the end and produce a Unified Draft, Open Questions, Integration Ledger, and the latest `Decision Log`.
 7. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
+If delegation is unavailable, mark the run exploration-only rather than simulating distinct subagents on paper.
 ```
 
 ## 2. Source Analyst
@@ -88,7 +90,7 @@ Tasks:
 2. Every step must include Objective, Inputs, Method, Outputs, Acceptance, Risks, and Escalation.
 3. Include exception paths, fallback paths, and a quality gate.
 4. Reflect the repo as the record system, `AGENTS.md` as the index, progressive context, mechanical constraints, and entropy control.
-5. Explicitly design external feedback loops and a subagent divide-and-conquer strategy for single-agent overload.
+5. Explicitly design external feedback loops and both of these subagent triggers: required publish-separation delegation and single-agent overload.
 
 Do not:
 - write only the happy path
@@ -153,6 +155,7 @@ Also check:
 - whether the Required Evidence Fields are complete
 - whether any Context Overflow Triggers have fired and been handled correctly
 - whether the `Gate Decision` fields match `artifact-registry.md`
+- whether required separated owners are backed by real delegated agent identifiers when delegation was available for the run
 
 Every `Fail` must identify a specific rework step, and `Return Step` may only be `S0` through `S7`.
 `S8` is the publish step and is never a valid rework target.
@@ -210,9 +213,9 @@ Ultra Lite:
 
 Lite:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator fills the role owner table
+2. S1 Orchestrator fills the role owner table and records whether delegation is available
 3. S2 Orchestrator produces Context Pack
-4. S3 Orchestrator writes Task Graph
+4. S3 Orchestrator writes Task Graph and, for publishable delegated runs, binds at least 2 distinct subagents across the required separated owners
 5. S4 Implementer executes and produces Execution Output Record
 6. S5 Critic produces Risk Register
 7. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
@@ -222,11 +225,11 @@ Lite:
 
 Full:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator produces Execution Environment Spec and Role Owner Table
+2. S1 Orchestrator produces Execution Environment Spec, Role Owner Table, and delegation posture
 3. S2 Orchestrator produces Context Pack
 4. S2 Source Analyst produces Claims List / Evidence Map
 5. S2 Principle Mapper produces Principle Set
-6. S3 Orchestrator produces Task Graph
+6. S3 Orchestrator produces Task Graph and, for publishable delegated runs, binds at least 3 distinct subagents across the required separated owners
 7. S3 Workflow Designer consumes Task Graph and produces Workflow Draft
 8. S4 Implementer executes and produces Execution Output Record
 9. S5 Critic produces Risk Register

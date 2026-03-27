@@ -31,6 +31,22 @@ Only add more roles such as `Source Analyst`, `Workflow Designer`, or `Human Dec
 
 Do not default to the full role set on small tasks.
 
+## Execution Policy
+
+Treat `role`, `owner`, and `subagent` as different things:
+- `Role`: the responsibility
+- `Owner`: the accountable executor for that responsibility
+- `Subagent`: the concrete delegated execution slot, when the environment supports delegation
+
+Default execution posture:
+- `Ultra Lite`: stay single-owner unless boundaries are unclear
+- `Lite`: if delegation is available and the run is intended for final publish, create at least 2 distinct subagents before deep execution starts
+- `Full`: if delegation is available and the run is intended for final publish, create at least 3 distinct subagents before deep execution starts
+- if delegation is unavailable or not allowed, mark the run `exploration-only` instead of pretending role separation exists
+
+Do not treat distinct role names by themselves as proof of distinct execution ownership.
+Record real agent identifiers in the role table and task graph whenever subagents are used.
+
 ## Operating Rules
 
 - Human steers; agents execute.
@@ -53,11 +69,12 @@ Do not default to the full role set on small tasks.
 ## Quick Start
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
-2. Open only the file for that tier first.
-3. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
-4. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
-5. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
-6. Open [references/checklists.md](references/checklists.md) at gate time.
+2. For `Lite` or `Full`, decide early whether delegation is available for this run.
+3. Open only the file for that tier first.
+4. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
+5. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
+6. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
+7. Open [references/checklists.md](references/checklists.md) at gate time.
 
 ## Escalation Heuristics
 
@@ -120,6 +137,7 @@ Lite:
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`
 - one `Decision Log`
+- real agent identifiers for delegated owners when delegation is available
 
 Full:
 - everything in Lite

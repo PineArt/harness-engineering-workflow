@@ -39,8 +39,12 @@ Human Decision Points:
 ### Role Owner Table
 
 ```text
-Role | Owner | Notes
+Role | Owner | Agent ID | Shared? | Notes
 ```
+
+Field notes:
+- `Agent ID` is the concrete delegated agent identifier when delegation is used; otherwise use `N/A`
+- `Shared?` is `Yes` or `No`
 
 ### `Execution Environment Spec`
 
@@ -68,6 +72,7 @@ Required Tools:
 ```text
 Task:
 Owner:
+Agent ID:
 Depends On:
 Outputs:
 Writable Area:

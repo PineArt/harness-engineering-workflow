@@ -47,19 +47,22 @@ Add these only when the task requires them:
 - `Principle Mapper`
 - `Template Editor`
 
-The role table must name an explicit owner:
+The role table must name an explicit owner. If delegation is available, it must also record the concrete agent identifier for each delegated owner:
 
 ```text
-Role | Owner | Notes
-Orchestrator |  |
-Implementer |  |
-Critic |  |
-Quality Gate |  |
+Role | Owner | Agent ID | Shared? | Notes
+Orchestrator |  |  |  |
+Implementer |  |  |  |
+Critic |  |  |  |
+Quality Gate |  |  |  |
 ```
 
 Notes:
+- `Role`, `Owner`, and `Agent ID` are not interchangeable.
 - The same person or the same agent may hold multiple responsibilities during exploration, but that is not the default publish posture for `Lite`.
 - A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners.
+- If delegation is available for a publishable `Lite` run, those 2 distinct owners must be backed by at least 2 distinct `Agent ID` values before `S4`.
+- If delegation is unavailable, the role table must mark the run exploration-only in `Notes`; distinct owner labels alone do not satisfy final `Boundary Integrity`.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
 - `Critic` and `Quality Gate` may be combined only when the notes record why stronger separation is unnecessary for this task.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
@@ -84,6 +87,7 @@ Required Tools:
 ```text
 Task:
 Owner:
+Agent ID:
 Depends On:
 Outputs:
 Writable Area:
@@ -94,6 +98,7 @@ At minimum, define:
 - parallel blocks
 - serial blocks
 - one unique owner per task
+- one bound `Agent ID` per delegated task
 - named `Outputs` and one unique `Writable Area`
 - human decision points
 
@@ -212,12 +217,14 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
 Single-owner `Lite` is exploration-only. It may produce drafts and intermediate artifacts, but it may not satisfy final `Boundary Integrity` for publish.
+If delegation was available for the run, paper-only owner separation is also exploration-only; final publish requires the role table and task graph to point to real delegated `Agent ID` values.
 
 Before publish, at minimum have:
 
 - [ ] `Task Brief`
 - [ ] role owner table
 - [ ] at least 2 distinct role owners
+- [ ] if delegation was available, at least 2 distinct delegated `Agent ID` values backing those owners
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`
@@ -237,6 +244,8 @@ Summarize or split into a subagent if any of the following becomes true:
 - more than 2 failed revisions on the same step
 - continuing requires re-reading more than 4 upstream artifacts
 - the current agent has started relying on long-history recall instead of a stable summary
+
+Do not wait for context overload to create the minimum publish-separation subagents. In `Lite`, that separation is an entry requirement for publishable delegated runs, not only an overload response.
 
 ## Escalate To Full If
 
