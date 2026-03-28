@@ -41,6 +41,7 @@ Human Decision Points:
 - `Quality Gate`
 
 Add these only when the task requires them:
+- `Runtime Verifier`
 - `Source Analyst`
 - `Workflow Designer`
 - `Human Decision Maker`
@@ -62,11 +63,13 @@ Notes:
 - The same person or the same agent may hold multiple responsibilities during exploration, but that is not the default publish posture for `Lite`.
 - A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners.
 - If delegation is available for a publishable `Lite` run, those 2 distinct owners must be backed by at least 2 distinct `Agent ID` values before `S4`.
+- If delegation is available, one `Agent ID` may not back more than one `Owner` in the same run.
 - If delegation is unavailable, the role table must mark the run exploration-only in `Notes`; distinct owner labels alone do not satisfy final `Boundary Integrity`.
+- `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
 - `Critic` and `Quality Gate` may be combined only when the notes record why stronger separation is unnecessary for this task.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
-- If the work needs 5 or more distinct workflow roles to have active ownership, escalate directly to `Full`.
+- If the work needs 5 or more distinct workflow roles to have active ownership, excluding a single `Runtime Verifier` added only for state-surface validation, escalate directly to `Full`.
 
 ## Step S2. Context Pack
 
@@ -99,6 +102,7 @@ At minimum, define:
 - serial blocks
 - one unique owner per task
 - one bound `Agent ID` per delegated task
+- delegated tasks only reuse an `Agent ID` when they also reuse the same `Owner`
 - named `Outputs` and one unique `Writable Area`
 - human decision points
 
@@ -119,6 +123,7 @@ Fact / Inference / Open Question
 
 Execution rules:
 - Prefer tests, LSP, logs, browsers, deployment state, or other external feedback to establish facts.
+- Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
 - Write intermediate results only to each role's own area.
 - `Outputs` must match the named artifact in `Task Graph`, and may be written only to that task's `Writable Area`.
 - On failure, fall back only to the responsible step.
@@ -141,6 +146,8 @@ Risk Register:
 - `Open`
 - `Mitigating`
 - `Closed`
+
+If `Runtime Verifier` is active, its `Runtime Evidence Record` should exist before `Critic` closes any state-dependent risk as `Closed`.
 
 See [artifact-registry.md](artifact-registry.md) for the full field definitions.
 
@@ -194,14 +201,11 @@ Blocking gates:
 - `External Feedback`
 
 Gate output must use the `Gate Decision` schema from [artifact-registry.md](artifact-registry.md).
+Gate verdict, field-population, and replay rules are canonical in [checklists.md](checklists.md).
 
 Rules:
-- `Return Step` may only be `S0` through `S7`.
-- `S8` is the publish step and is never a valid rework target.
-- `Fail` must include `Return Step` and `Rework Owner`.
-- `Conditional Pass` must include `Return Step`, `Rework Owner`, `Re-gate Owner`, `Re-gate Condition`, `Re-gate Evidence`, and `Due Before`.
-- `Pass` must set `Return Step`, `Rework Owner`, and all re-gate fields to `N/A`.
-- Rework must rerun from `Return Step` through `S7`, and must refresh every artifact produced by that step and every downstream step.
+- return only `Pass`, `Conditional Pass`, or `Fail`
+- follow the canonical gate verdict, field-population, and replay rules from [checklists.md](checklists.md)
 
 If `checklists.md` is temporarily unavailable:
 - restore that file from version control first
@@ -218,6 +222,7 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
 Single-owner `Lite` is exploration-only. It may produce drafts and intermediate artifacts, but it may not satisfy final `Boundary Integrity` for publish.
 If delegation was available for the run, paper-only owner separation is also exploration-only; final publish requires the role table and task graph to point to real delegated `Agent ID` values.
+Do not enter `S8` unless the latest `Gate Decision` verdict is `Pass`.
 
 Before publish, at minimum have:
 
@@ -228,9 +233,11 @@ Before publish, at minimum have:
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`
+- [ ] `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
 - [ ] `Risk Register`
 - [ ] `Integration Ledger`
 - [ ] `Gate Decision`
+- [ ] the latest `Gate Decision` verdict is `Pass`
 - [ ] `Decision Log`
 
 `Decision Log` is maintained by `Orchestrator` by default.
@@ -250,7 +257,7 @@ Do not wait for context overload to create the minimum publish-separation subage
 ## Escalate To Full If
 
 Escalate to [workflow-template.md](workflow-template.md) if any of the following is true:
-- the work needs 5 or more distinct workflow roles to have active ownership
+- the work needs 5 or more distinct workflow roles to have active ownership, excluding a single `Runtime Verifier` added only for state-surface validation
 - more than 1 parallel workflow must converge at the same time
 - `Template Editor` or `Principle Mapper` is required for the final delivery
 - formal environment design or repo structure changes are required

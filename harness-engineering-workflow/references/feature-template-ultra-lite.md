@@ -47,6 +47,7 @@ Done When:
 - Do not create an `Integration Ledger` by default.
 - Do not open the full quality gate by default.
 - `Ultra Lite` is intentionally single-owner. Do not simulate role separation inside this tier; escalate instead.
+- Any change that depends on pre-existing state must still be validated against a real pre-existing state surface.
 - Prefer the shortest validation loop that can close the task.
 - Humans review the result, not every line.
 - Default `Owner` maps to `Implementer`.
@@ -65,6 +66,7 @@ Pick the cheapest and most direct option first:
 
 Rules:
 - A successful build alone is not enough for correctness-critical changes.
+- If correctness depends on pre-existing state, validate against the real existing surface that matters; a freshly seeded substitute is not automatically equivalent.
 - If validation depends on more than one independent signal to be credible, escalate to `workflow-template-lite.md`.
 
 ## 5. If Validation Fails
@@ -101,6 +103,7 @@ Required Tools: <Validation path and required tools>
 Role | Owner | Agent ID | Shared? | Notes
 Orchestrator | <Assign if needed for boundary clarification> | <N/A or delegated id> | <Yes/No> | Add when Lite needs explicit coordination
 Implementer | <Owner> | <N/A or delegated id> | <Yes/No> | Carried forward from Ultra Lite
+Runtime Verifier | <Assign when state-surface validation is needed> | <N/A or delegated id> | <Yes/No> | Add when correctness depends on pre-existing state or independent dynamic verification
 Critic | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
 Quality Gate | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
 ```
@@ -110,6 +113,7 @@ Quality Gate | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
 Escalate to `workflow-template-lite.md` if any of the following is true:
 - a second owner is needed
 - multiple validation sources are needed
+- correctness depends on pre-existing state and the real state surface is not trivially available to the single owner
 - the second rework round would be needed
 - the scope starts expanding
 - requirement boundaries need human arbitration

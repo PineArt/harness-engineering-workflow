@@ -15,6 +15,7 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] any `Lite` workflow intended for publish uses at least 2 distinct owners
 - [ ] any `Full` workflow intended for publish uses at least 3 distinct owners
 - [ ] if delegation is available, required publish-separation owners are backed by distinct agent identifiers
+- [ ] if delegation is available, no delegated agent identifier is assigned to more than one owner in the same run
 - [ ] parallel tasks do not share the same writable area
 
 ## Quality Gates
@@ -26,6 +27,7 @@ Other files should reference these gates by name instead of redefining them.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - For `Lite` final publish, use `Fail` if the workflow has only 1 distinct owner, if `Implementer` also owns `Quality Gate`, or if delegation was available but the required owner separation exists only on paper without distinct agent identifiers.
 - For `Full` final publish, use `Fail` if the workflow has fewer than 3 distinct owners, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if `Quality Gate` also owns `Orchestrator`, or if delegation was available but the required owner separation exists only on paper without distinct agent identifiers.
+- Use `Fail` if a change depends on pre-existing state but the workflow does not validate against a real pre-existing state surface.
 
 ### Blocking Gates
 
@@ -49,7 +51,8 @@ This file is canonical for gate verdict rules and replay semantics.
 
 ### Return Step Rules
 
-- `Return Step` may only target `S0` through `S7`
+- `Return Step` may only target `S0` through `S6`
+- `S7` is gate-only and is never a valid rework target
 - `S8` is publish-only and is never a valid rework target
 - `Fail` must always include a `Return Step`
 - `Fail` must include `Rework Owner`
@@ -62,7 +65,9 @@ This file is canonical for gate verdict rules and replay semantics.
 - after `Fail`, rerun from `Return Step` through every downstream required step until `S7`
 - after `Conditional Pass`, complete the remediation owned by `Rework Owner`, then rerun from `Return Step` through every downstream required step until `S7`
 - any artifact produced by the `Return Step` or a later step must be refreshed before re-gate
-- if the only missing action is refreshed gate evidence, `Conditional Pass` may use `Return Step: S7`
+- a `Conditional Pass` remains open until a fresh `Pass` is recorded by a later `Gate Decision`
+- `S8` may begin only when the latest `Gate Decision` verdict is `Pass`
+- no workflow may continue autonomous gate-triggered rework for the same unresolved issue beyond 2 cycles; after the second cycle, require human arbitration or tier escalation before further execution
 
 ### Source Fidelity
 
@@ -76,11 +81,13 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] single-owner `Lite` is marked exploration-only and is not used as the final publish workflow
 - [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
 - [ ] if delegation is available for publishable `Lite`, the separated owners are backed by at least 2 distinct agent identifiers
+- [ ] if delegation is available, any shared `Agent ID` rows also share the same `Owner`
 - [ ] if `Critic` and `Quality Gate` share an owner, the role table notes explain why stronger separation is unnecessary
 - [ ] publishable `Full` workflows use at least 3 distinct owners
 - [ ] `Implementer`, `Critic`, and `Quality Gate` have different owners for any publishable `Full` workflow
 - [ ] `Quality Gate` does not share an owner with `Orchestrator` for any publishable `Full` workflow
 - [ ] if delegation is available for publishable `Full`, the separated owners are backed by at least 3 distinct agent identifiers
+- [ ] if delegation is available, every delegated task's `Owner` / `Agent ID` pair matches the `Role Owner Table`
 - [ ] no agent is silently making final human decisions
 - [ ] write ownership is clear
 
@@ -97,6 +104,8 @@ This file is canonical for gate verdict rules and replay semantics.
 
 - [ ] important claims are checked with tools or runtime signals
 - [ ] tests, logs, diagnostics, or UI checks are used where relevant
+- [ ] any change that depends on pre-existing state is validated against a real pre-existing state surface
+- [ ] implementer self-certification is not the only evidence when state-surface validation is required
 - [ ] the workflow does not rely on model self-certification alone
 
 ### Reusability

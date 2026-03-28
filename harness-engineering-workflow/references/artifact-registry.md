@@ -15,6 +15,7 @@ If this file is unavailable during execution, restore it from version control be
 | `Task Graph` | `Orchestrator` | `S3` | `Lite`, `Full` |
 | `Workflow Draft` | `Workflow Designer` | `S3` | `Full` |
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
+| `Runtime Evidence Record` | `Runtime Verifier` | `S4` | `Lite`, `Full` when state-surface validation is required |
 | `Risk Register` | `Critic` | `S5` | `Lite`, `Full` |
 | `Unified Draft` | `Orchestrator` | `S6` | `Full` |
 | `Open Questions` | `Orchestrator` | `S6` | `Full` |
@@ -45,6 +46,8 @@ Role | Owner | Agent ID | Shared? | Notes
 Field notes:
 - `Agent ID` is the concrete delegated agent identifier when delegation is used; otherwise use `N/A`
 - `Shared?` is `Yes` or `No`
+- within a run, one `Agent ID` may map to only one `Owner`
+- if multiple rows share one `Agent ID`, they must also share the same `Owner`, and `Shared?` must be `Yes`
 
 ### `Execution Environment Spec`
 
@@ -79,6 +82,9 @@ Writable Area:
 Fallback:
 ```
 
+Field notes:
+- when delegation is used, the `Owner` / `Agent ID` pair must match an existing row in the `Role Owner Table`
+
 ### `Workflow Draft`
 
 ```text
@@ -108,6 +114,24 @@ Fact / Inference / Open Question
 Rules:
 - `Outputs` must match the named artifact from `Task Graph`
 - the record must be written only inside the task owner's `Writable Area`
+- implementer self-validation is not sufficient by itself when correctness depends on pre-existing state
+
+### `Runtime Evidence Record`
+
+```text
+State Surface:
+Starting State:
+Method:
+Evidence:
+Result:
+Residual Risk:
+Fact / Inference / Open Question
+```
+
+Field notes:
+- `State Surface` names the real pre-existing state surface used for validation
+- `Starting State` records the relevant observed state before the change or before the verification action
+- `Evidence` should cite concrete runtime outputs such as test logs, screenshots, traces, responses, or database reads
 
 ### `Risk Register`
 
@@ -203,14 +227,9 @@ Due Before:
 ```
 
 Field rules:
-- `Return Step` may only target `S0` to `S7`
-- `S8` is publish-only and is never a valid rework target
 - `Owner` is the gate reviewer owner
 - `Rework Owner` is the owner who must execute the corrective action for `Fail` or `Conditional Pass`
-- `Pass` must use `N/A` for `Return Step`, `Rework Owner`, and all re-gate fields
-- `Fail` must include `Return Step` and `Rework Owner`, and should use `N/A` for all re-gate fields
-- `Conditional Pass` must include `Return Step`, `Rework Owner`, and all re-gate fields
-- for `Conditional Pass`, `Return Step` should point to the remediation step that must complete before re-gate; use `S7` only if the only missing action is refreshed gate evidence
+- verdict-specific population rules and replay semantics are canonical in `checklists.md`
 
 ### `Next Iteration Notes`
 

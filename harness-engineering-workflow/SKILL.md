@@ -27,7 +27,7 @@ For `Lite`, start with these 4 roles:
 - `Critic`
 - `Quality Gate`
 
-Only add more roles such as `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
+Only add more roles such as `Runtime Verifier`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
 
 Do not default to the full role set on small tasks.
 
@@ -54,6 +54,7 @@ Record real agent identifiers in the role table and task graph whenever subagent
 - Knowledge not encoded into the repo or task artifacts should be treated as unavailable.
 - Keep `AGENTS.md` short and navigational.
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
+- Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
 - If a single agent is nearing context overload, split work into subagents or smaller owned tasks.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
@@ -97,9 +98,10 @@ Use `Lite` when:
 - you need a runnable midweight workflow
 - you can name owners for `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
 - one workflow needs structured risk scan and gate review
+- dynamic validation may be needed, but the work still centers on one primary implementation path
 
 Use `Full` when:
-- 5 or more distinct workflow roles need active ownership
+- 5 or more distinct workflow roles need active ownership, excluding a single `Runtime Verifier` added only for state-surface validation
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
 - `Lite` starts needing repeated human interpretation to pass gate review
@@ -114,7 +116,7 @@ Start with `Ultra Lite` if all three are true:
 Start with `Full` immediately if any two are true:
 - more than one workflow must converge
 - environment or repo structure is part of the deliverable
-- you already expect 5 or more distinct workflow roles to need active ownership
+- you already expect 5 or more distinct workflow roles other than a single `Runtime Verifier` added only for state-surface validation to need active ownership
 - human decisions must be logged across multiple rounds
 
 Otherwise start with `Lite`.
@@ -133,6 +135,7 @@ Lite:
 - one `Context Pack`
 - one `Task Graph`
 - one `Execution Output Record`
+- one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
 - one `Risk Register`
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`
