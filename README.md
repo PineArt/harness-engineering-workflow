@@ -10,6 +10,7 @@ The installable skill lives in [harness-engineering-workflow](./harness-engineer
 - Display name: `Harness Workflow`
 - Invocation style: explicit only
 - Trigger form: `$harness-engineering-workflow`
+- Delegation mode: explicit UI-visible subagents only; hidden/background `spawn_agent` runs do not count
 
 Use this skill when the task needs a reusable workflow with tiering from `Ultra Lite` to `Full`, plus role ownership, context packaging, gate review, and result acceptance.
 
@@ -100,6 +101,7 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - `Ultra Lite` is for low-risk, tightly bounded work where 1 owner and 1 strong validation path are enough for final publish.
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
 - `Lite` final publish requires at least 2 distinct owners.
+- For this skill, delegated owners count only when backed by explicit UI-visible subagents. Hidden/background `spawn_agent` runs are treated as delegation-unavailable.
 - In publishable `Lite`, `Implementer` may not also own `Quality Gate`.
 - `Full` final publish requires at least 3 distinct owners.
 - In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.

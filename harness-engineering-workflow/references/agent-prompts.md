@@ -6,9 +6,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
-- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; if delegation is available and the run is publishable, assign at least 2 distinct subagents across the required separated owners
+- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; if explicit UI-visible delegation is available and the run is publishable, assign at least 2 distinct subagents across the required separated owners
 - `Lite` or `Full`: add `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them
-- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; if delegation is available and the run is publishable, assign at least 3 distinct subagents across the required separated owners
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; if explicit UI-visible delegation is available and the run is publishable, assign at least 3 distinct subagents across the required separated owners
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
@@ -25,7 +25,8 @@ If sources are insufficient, do not fill the gap with a definite conclusion.
 Prefer tools and external feedback to establish factual anchors. Do not rely only on text-only reasoning.
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
-If publish separation requires distinct delegated owners and delegation is available, create or request that split before deep execution starts.
+If publish separation requires distinct delegated owners and explicit UI-visible delegation is available, create or request that split before deep execution starts.
+Hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy publish separation for this skill.
 If context starts to overload, actively recommend a subagent or subtask split instead of stuffing more into the same window.
 ```
 
@@ -46,7 +47,7 @@ Tasks:
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
-If delegation is unavailable, mark the run exploration-only rather than simulating distinct subagents on paper.
+If only hidden/background delegation is available, treat delegation as unavailable and mark the run exploration-only rather than simulating distinct subagents on paper.
 ```
 
 ## 2. Source Analyst
@@ -185,7 +186,7 @@ Also check:
 - whether the Required Evidence Fields are complete
 - whether any Context Overflow Triggers have fired and been handled correctly
 - whether the `Gate Decision` fields match `artifact-registry.md`
-- whether required separated owners are backed by real delegated agent identifiers when delegation was available for the run
+- whether required separated owners are backed by real delegated agent identifiers when explicit UI-visible delegation was available for the run
 
 Use the verdict, field-population, and replay rules from [checklists.md](checklists.md) as the single source of truth.
 Do not give vague conclusions.
@@ -238,9 +239,9 @@ Ultra Lite:
 
 Lite:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator fills the role owner table and records whether delegation is available
+2. S1 Orchestrator fills the role owner table and records whether explicit UI-visible delegation is available
 3. S2 Orchestrator produces Context Pack
-4. S3 Orchestrator writes Task Graph and, for publishable delegated runs, binds at least 2 distinct subagents across the required separated owners
+4. S3 Orchestrator writes Task Graph and, for publishable delegated runs, binds at least 2 distinct explicit UI-visible subagents across the required separated owners
 5. S4 Implementer executes and produces Execution Output Record
 6. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 7. S5 Critic produces Risk Register
@@ -255,7 +256,7 @@ Full:
 3. S2 Orchestrator produces Context Pack
 4. S2 Source Analyst produces Claims List / Evidence Map
 5. S2 Principle Mapper produces Principle Set
-6. S3 Orchestrator produces Task Graph and, for publishable delegated runs, binds at least 3 distinct subagents across the required separated owners
+6. S3 Orchestrator produces Task Graph and, for publishable delegated runs, binds at least 3 distinct explicit UI-visible subagents across the required separated owners
 7. S3 Workflow Designer consumes Task Graph and produces Workflow Draft
 8. S4 Implementer executes and produces Execution Output Record
 9. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification

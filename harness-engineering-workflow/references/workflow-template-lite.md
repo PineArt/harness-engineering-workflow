@@ -48,7 +48,7 @@ Add these only when the task requires them:
 - `Principle Mapper`
 - `Template Editor`
 
-The role table must name an explicit owner. If delegation is available, it must also record the concrete agent identifier for each delegated owner:
+The role table must name an explicit owner. If explicit UI-visible delegation is available, it must also record the concrete agent identifier for each delegated owner:
 
 ```text
 Role | Owner | Agent ID | Shared? | Notes
@@ -62,8 +62,9 @@ Notes:
 - `Role`, `Owner`, and `Agent ID` are not interchangeable.
 - The same person or the same agent may hold multiple responsibilities during exploration, but that is not the default publish posture for `Lite`.
 - A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners.
-- If delegation is available for a publishable `Lite` run, those 2 distinct owners must be backed by at least 2 distinct `Agent ID` values before `S4`.
-- If delegation is available, one `Agent ID` may not back more than one `Owner` in the same run.
+- If explicit UI-visible delegation is available for a publishable `Lite` run, those 2 distinct owners must be backed by at least 2 distinct `Agent ID` values before `S4`.
+- If explicit UI-visible delegation is available, one `Agent ID` may not back more than one `Owner` in the same run.
+- Hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the `Agent ID` requirement for this skill.
 - If delegation is unavailable, the role table must mark the run exploration-only in `Notes`; distinct owner labels alone do not satisfy final `Boundary Integrity`.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
@@ -101,7 +102,7 @@ At minimum, define:
 - parallel blocks
 - serial blocks
 - one unique owner per task
-- one bound `Agent ID` per delegated task
+- one bound `Agent ID` from an explicit UI-visible subagent per delegated task
 - delegated tasks only reuse an `Agent ID` when they also reuse the same `Owner`
 - named `Outputs` and one unique `Writable Area`
 - human decision points
@@ -221,7 +222,7 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
 Single-owner `Lite` is exploration-only. It may produce drafts and intermediate artifacts, but it may not satisfy final `Boundary Integrity` for publish.
-If delegation was available for the run, paper-only owner separation is also exploration-only; final publish requires the role table and task graph to point to real delegated `Agent ID` values.
+If explicit UI-visible delegation was available for the run, paper-only owner separation is also exploration-only; final publish requires the role table and task graph to point to real delegated `Agent ID` values from explicit UI-visible subagents.
 Do not enter `S8` unless the latest `Gate Decision` verdict is `Pass`.
 
 Before publish, at minimum have:
@@ -229,7 +230,7 @@ Before publish, at minimum have:
 - [ ] `Task Brief`
 - [ ] role owner table
 - [ ] at least 2 distinct role owners
-- [ ] if delegation was available, at least 2 distinct delegated `Agent ID` values backing those owners
+- [ ] if explicit UI-visible delegation was available, at least 2 distinct delegated `Agent ID` values backing those owners
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

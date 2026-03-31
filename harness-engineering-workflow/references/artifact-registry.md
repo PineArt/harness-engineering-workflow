@@ -44,7 +44,7 @@ Role | Owner | Agent ID | Shared? | Notes
 ```
 
 Field notes:
-- `Agent ID` is the concrete delegated agent identifier when delegation is used; otherwise use `N/A`
+- `Agent ID` is the concrete delegated agent identifier from an explicit UI-visible subagent when delegation is used; otherwise use `N/A`
 - `Shared?` is `Yes` or `No`
 - within a run, one `Agent ID` may map to only one `Owner`
 - if multiple rows share one `Agent ID`, they must also share the same `Owner`, and `Shared?` must be `Yes`
@@ -84,6 +84,7 @@ Fallback:
 
 Field notes:
 - when delegation is used, the `Owner` / `Agent ID` pair must match an existing row in the `Role Owner Table`
+- hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy this `Agent ID` field
 
 ### `Workflow Draft`
 

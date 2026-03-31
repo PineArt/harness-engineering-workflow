@@ -157,7 +157,7 @@ Method:
 - define a unified output format
 - define status, version, and log fields
 - define read and write boundaries
-- record whether delegation is available for the run
+- record whether explicit UI-visible delegation is available for the run
 - define `Role Owner Table`
 - mark whether the run is exploration-only or intended for final publish
 - enforce tier-specific owner separation before downstream work starts
@@ -171,8 +171,9 @@ Acceptance:
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
-- if delegation is available, a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers before downstream execution starts
-- if delegation is available, each delegated agent identifier maps to only one owner within the run
+- if explicit UI-visible delegation is available, a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers before downstream execution starts
+- if explicit UI-visible delegation is available, each delegated agent identifier maps to only one owner within the run
+- hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the delegated-agent requirement for this skill
 - if delegation is unavailable, the run is marked exploration-only rather than claiming final publish separation
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
@@ -223,14 +224,14 @@ Method:
 - define parallel blocks
 - define serial dependencies
 - define owner
-- bind delegated agent identifiers where delegation is available
+- bind delegated agent identifiers where explicit UI-visible delegation is available
 - define named outputs and `Writable Area` for every task
 - define termination conditions
 - define human decision points
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
-- for publishable delegated `Full` runs, instantiate the minimum required distinct subagents before deep execution starts
+- for publishable delegated `Full` runs, instantiate the minimum required distinct explicit UI-visible subagents before deep execution starts
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -425,7 +426,7 @@ Acceptance:
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
 - exploration-only `Full` runs may inform the final publish workflow, but they may not satisfy final `Boundary Integrity` on their own
-- if delegation was available for the run, final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
+- if explicit UI-visible delegation was available for the run, final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton
