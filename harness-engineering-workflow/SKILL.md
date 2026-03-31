@@ -27,9 +27,27 @@ For `Lite`, start with these 4 roles:
 - `Critic`
 - `Quality Gate`
 
-Only add more roles such as `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
+Only add more roles such as `Runtime Verifier`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
 
 Do not default to the full role set on small tasks.
+
+## Execution Policy
+
+Treat `role`, `owner`, and `subagent` as different things:
+- `Role`: the responsibility
+- `Owner`: the accountable executor for that responsibility
+- `Subagent`: the concrete delegated execution slot, but for this skill it counts only when created through an explicit UI-visible subagent flow
+
+Default execution posture:
+- `Ultra Lite`: stay single-owner unless boundaries are unclear
+- `Lite`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 2 distinct subagents before deep execution starts
+- `Full`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 3 distinct subagents before deep execution starts
+- if delegation is unavailable or not allowed, mark the run `exploration-only` instead of pretending role separation exists
+- hidden or background-only delegation such as tool-driven `spawn_agent` does not satisfy this skill's delegation requirement; if that is the only available mechanism, treat delegation as unavailable
+
+Do not treat distinct role names by themselves as proof of distinct execution ownership.
+Record real agent identifiers in the role table and task graph whenever subagents are used.
+Record only identifiers from explicit UI-visible subagents; background `spawn_agent` identifiers do not count for publish separation.
 
 ## Operating Rules
 
@@ -38,7 +56,9 @@ Do not default to the full role set on small tasks.
 - Knowledge not encoded into the repo or task artifacts should be treated as unavailable.
 - Keep `AGENTS.md` short and navigational.
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
+- Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
 - If a single agent is nearing context overload, split work into subagents or smaller owned tasks.
+- When delegation is required, use explicit UI-visible subagents only; do not silently create background-only delegated agents.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
 ## What To Read
@@ -53,11 +73,12 @@ Do not default to the full role set on small tasks.
 ## Quick Start
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
-2. Open only the file for that tier first.
-3. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
-4. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
-5. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
-6. Open [references/checklists.md](references/checklists.md) at gate time.
+2. For `Lite` or `Full`, decide early whether explicit UI-visible delegation is available for this run.
+3. Open only the file for that tier first.
+4. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
+5. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
+6. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
+7. Open [references/checklists.md](references/checklists.md) at gate time.
 
 ## Escalation Heuristics
 
@@ -80,9 +101,10 @@ Use `Lite` when:
 - you need a runnable midweight workflow
 - you can name owners for `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
 - one workflow needs structured risk scan and gate review
+- dynamic validation may be needed, but the work still centers on one primary implementation path
 
 Use `Full` when:
-- 5 or more distinct workflow roles need active ownership
+- 5 or more distinct workflow roles need active ownership, excluding a single `Runtime Verifier` added only for state-surface validation
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
 - `Lite` starts needing repeated human interpretation to pass gate review
@@ -97,7 +119,7 @@ Start with `Ultra Lite` if all three are true:
 Start with `Full` immediately if any two are true:
 - more than one workflow must converge
 - environment or repo structure is part of the deliverable
-- you already expect 5 or more distinct workflow roles to need active ownership
+- you already expect 5 or more distinct workflow roles other than a single `Runtime Verifier` added only for state-surface validation to need active ownership
 - human decisions must be logged across multiple rounds
 
 Otherwise start with `Lite`.
@@ -116,10 +138,12 @@ Lite:
 - one `Context Pack`
 - one `Task Graph`
 - one `Execution Output Record`
+- one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
 - one `Risk Register`
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`
 - one `Decision Log`
+- real agent identifiers for delegated owners when explicit UI-visible delegation is available
 
 Full:
 - everything in Lite

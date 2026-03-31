@@ -26,8 +26,9 @@ Do not use this when:
 10. Eliminate non-coding bottlenecks first, especially validation, testing, deployment, troubleshooting, and review.
 11. Keep context design stable where possible: prefer append-only updates and avoid rewriting stable prefixes.
 12. External feedback is the primary counterweight to hallucination; do not rely only on model-internal reasoning.
-13. When a single agent approaches context limits, split with subagents rather than forcing everything into one window.
-14. By default, humans shift from line-by-line reviewers to result acceptors.
+13. Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
+14. When a single agent approaches context limits, split with subagents rather than forcing everything into one window.
+15. By default, humans shift from line-by-line reviewers to result acceptors.
 
 ## 2. Operating Model
 
@@ -101,6 +102,7 @@ AI-friendly tools to prioritize:
 | `Principle Mapper` | abstract engineering principles from material | claims, evidence | `Principle Set`, `Mapping Table` | write implementation details |
 | `Workflow Designer` | design steps, dependencies, and fallbacks | principles, task goals | `Workflow Draft` | overstep into arbitration |
 | `Implementer` | produce code or documentation outputs | task brief, context pack | patch, draft, tests | rewrite upstream goals |
+| `Runtime Verifier` | produce runtime evidence against real state surfaces | task graph, context pack, running system state | `Runtime Evidence Record` | substitute synthetic state for the required pre-existing state without explicit approval |
 | `Critic` | find gaps, conflicts, and risks | drafts, process records | `Risk Register`, `Revision Requests` | become the primary narrative writer |
 | `Quality Gate` | decide whether the work passes gate review | artifacts from all phases | `Pass`, `Conditional Pass`, `Fail` | modify the content directly |
 | `Template Editor` | package the result into reusable assets | approved content | `Reusable Template`, `Runbook` | change the core conclusions |
@@ -109,6 +111,7 @@ AI-friendly tools to prioritize:
 Artifact schemas and ownership are canonical in `artifact-registry.md`.
 
 For escalation thresholds, count distinct workflow roles that need active ownership in the current run, not task count or subtask count.
+`Runtime Verifier` may be added to `Lite` without immediate escalation when it is the only optional role beyond the default four and the workflow still centers on one primary implementation path.
 
 ## 5. Phase-by-Phase Workflow
 
@@ -154,6 +157,7 @@ Method:
 - define a unified output format
 - define status, version, and log fields
 - define read and write boundaries
+- record whether explicit UI-visible delegation is available for the run
 - define `Role Owner Table`
 - mark whether the run is exploration-only or intended for final publish
 - enforce tier-specific owner separation before downstream work starts
@@ -167,6 +171,10 @@ Acceptance:
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
+- if explicit UI-visible delegation is available, a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers before downstream execution starts
+- if explicit UI-visible delegation is available, each delegated agent identifier maps to only one owner within the run
+- hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the delegated-agent requirement for this skill
+- if delegation is unavailable, the run is marked exploration-only rather than claiming final publish separation
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 
@@ -216,11 +224,14 @@ Method:
 - define parallel blocks
 - define serial dependencies
 - define owner
+- bind delegated agent identifiers where explicit UI-visible delegation is available
 - define named outputs and `Writable Area` for every task
 - define termination conditions
 - define human decision points
+- identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
+- for publishable delegated `Full` runs, instantiate the minimum required distinct explicit UI-visible subagents before deep execution starts
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -229,6 +240,8 @@ Outputs:
 
 Acceptance:
 - every node has exactly one owner
+- every delegated node is bound to one concrete agent identifier
+- every delegated `Owner` / `Agent ID` pair matches the `Role Owner Table`
 - dependencies are clear and there are no responsibility gaps
 - no very long chain is forced into one agent
 
@@ -250,6 +263,7 @@ Method:
 - produce output in a unified format
 - write intermediate results only to each role's own area
 - use tool calls to obtain external factual feedback instead of text-only reasoning
+- require real state-surface validation for any change whose correctness depends on pre-existing state
 - split work to subagents when the primary agent's context pressure becomes too high
 
 Outputs:
@@ -271,9 +285,11 @@ Produce stable risk conclusions before gate review instead of hiding risk checks
 
 Inputs:
 - the set of subtask artifacts
+- `Runtime Evidence Record` when state-surface validation is required
 
 Method:
 - `Critic` scans source reliability, role boundaries, verifiability, context expansion, and tool friendliness
+- `Critic` treats missing real state-surface validation as an open risk rather than closing it from static reasoning alone
 - record every risk with evidence, owner, and required action
 
 Outputs:
@@ -301,6 +317,7 @@ Converge from parallel divergence into one unified draft.
 
 Inputs:
 - outputs from all agents
+- `Runtime Evidence Record` when state-surface validation is required
 - `Risk Register`
 
 Method:
@@ -342,16 +359,13 @@ Use a fixed rubric to decide whether the workflow can proceed.
 
 Inputs:
 - `Unified Draft`
+- `Runtime Evidence Record` when state-surface validation is required
 - `Risk Register`
 - `Integration Ledger`
 
 Method:
 - apply the canonical gate rules from `checklists.md` strictly
-- record gate evidence, blocking vs non-blocking outcomes, and rework steps
-- if `Fail`, `Return Step` must be a stable step name and may only be `S0` through `S7`
-- `S8` is publish-only and is never a valid rework target
-- if `Fail`, specify `Rework Owner`
-- if `Conditional Pass`, specify `Return Step`, `Rework Owner`, `Re-gate Owner`, `Re-gate Condition`, `Re-gate Evidence`, and `Due Before`
+- produce a `Gate Decision` that satisfies the canonical verdict, evidence, and replay requirements
 - if `checklists.md` is temporarily unavailable, restore it from version control first; use the minimum rules in this section only when the workflow must continue, and realign with the canonical checklist before publish
 - if `artifact-registry.md` is temporarily unavailable, restore it from version control first; do not rewrite `Gate Decision` field names from memory before it is restored; if no prior valid gate artifact exists to reuse, do not continue through the gate
 - after gate review, `Orchestrator` must append the gate outcome to `Decision Log` before rework or publish
@@ -363,15 +377,12 @@ Gate Decision Schema:
 - canonical field names live in `artifact-registry.md`
 
 Acceptance:
-- return `Pass`, `Conditional Pass`, or `Fail`
-- every failed item points to a specific rework step
-- every `Conditional Pass` has an explicit re-gate owner, condition, and due point
-- blocking gate failures may not be waved through
+- the `Gate Decision` conforms to the canonical rules in `checklists.md`
+- blocking gate failures are not waved through
 
 Fallback:
-- on failure, return only to the specific step rather than restarting the entire chain
 - do not enter `S7` without `Integration Ledger`
-- rework must rerun from `Return Step` through `S7`, and must refresh every artifact produced by that step and every downstream step
+- use the canonical replay rules from `checklists.md`
 
 ### Step S8. Publish and Learn
 
@@ -382,6 +393,7 @@ Inputs:
 - the approved final draft
 
 Method:
+- verify that the latest `Gate Decision` verdict is `Pass` before publish starts
 - freeze the version
 - record decisions
 - summarize rework patterns
@@ -414,6 +426,7 @@ Acceptance:
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
 - exploration-only `Full` runs may inform the final publish workflow, but they may not satisfy final `Boundary Integrity` on their own
+- if explicit UI-visible delegation was available for the run, final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton
@@ -450,7 +463,8 @@ Canonical gate definitions live in `checklists.md`.
 This template assumes:
 - blocking gates must pass before publish
 - `Risk Register` and `Integration Ledger` are required inputs to gate review
-- gate decisions must include evidence and explicit return steps
+- `Runtime Evidence Record` is a required input to gate review whenever correctness depends on pre-existing state
+- gate decisions follow the canonical field-population and replay rules in `checklists.md`
 - `Reusability` and `Entropy Control` are non-blocking by default unless the task explicitly makes them release-critical
 
 ## 8. Observability and Entropy
@@ -525,12 +539,13 @@ Minimal execution order:
 6. `S3` `Orchestrator` produces `Task Graph`
 7. `S3` `Workflow Designer` consumes `Task Graph` and produces `Workflow Draft`
 8. `S4` `Implementer` executes and produces `Execution Output Record`
-9. `S5` `Critic` produces `Risk Register`
-10. `S6` `Orchestrator` produces `Integration Ledger` and updates `Decision Log`
-11. `S7` `Quality Gate` decides whether the work passes gate review
-12. `S7` `Orchestrator` appends the gate outcome to `Decision Log`
-13. `S8` `Template Editor` packages the final template
-14. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
+9. `S4` `Runtime Verifier` validates real state surfaces and produces `Runtime Evidence Record` when required
+10. `S5` `Critic` produces `Risk Register`
+11. `S6` `Orchestrator` produces `Integration Ledger` and updates `Decision Log`
+12. `S7` `Quality Gate` decides whether the work passes gate review
+13. `S7` `Orchestrator` appends the gate outcome to `Decision Log`
+14. `S8` `Template Editor` packages the final template
+15. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
 
 ## 11. Anti-Patterns
 
