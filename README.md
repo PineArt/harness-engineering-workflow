@@ -100,13 +100,13 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 
 - `Ultra Lite` is for low-risk, tightly bounded work where 1 owner and 1 strong validation path are enough for final publish.
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
-- `Lite` final publish requires at least 2 distinct owners.
-- For this skill, delegated owners count only when backed by explicit UI-visible subagents. Hidden/background `spawn_agent` runs are treated as delegation-unavailable.
+- `Lite` final publish requires at least 2 distinct owners backed by at least 2 explicit UI-visible subagents.
+- For this skill, delegated owners count only when backed by explicit UI-visible subagents. Hidden/background `spawn_agent` runs are treated as delegation-unavailable and are a fatal `Boundary Integrity` failure for publish-separation tiers.
 - In publishable `Lite`, `Implementer` may not also own `Quality Gate`.
 - `Full` final publish requires at least 3 distinct owners.
 - In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.
 - In publishable `Full`, `Quality Gate` may not also own `Orchestrator`.
-- Exploration-only runs are allowed in any tier, but they do not satisfy final `Boundary Integrity` for publish by themselves.
+- Do not relabel missing UI-visible delegation or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.
 
 ## Source Of Truth
 

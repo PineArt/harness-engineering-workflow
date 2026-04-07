@@ -42,7 +42,7 @@ Default execution posture:
 - `Ultra Lite`: stay single-owner unless boundaries are unclear
 - `Lite`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 2 distinct subagents before deep execution starts
 - `Full`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 3 distinct subagents before deep execution starts
-- if delegation is unavailable or not allowed, mark the run `exploration-only` instead of pretending role separation exists
+- if a tier requires separated owners and explicit UI-visible delegation is unavailable or not allowed, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - hidden or background-only delegation such as tool-driven `spawn_agent` does not satisfy this skill's delegation requirement; if that is the only available mechanism, treat delegation as unavailable
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
@@ -73,7 +73,7 @@ Record only identifiers from explicit UI-visible subagents; background `spawn_ag
 ## Quick Start
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
-2. For `Lite` or `Full`, decide early whether explicit UI-visible delegation is available for this run.
+2. For `Lite` or `Full`, decide early whether explicit UI-visible delegation is available for this run; if not, stop and redesign instead of downgrading the same run to paper-only separation.
 3. Open only the file for that tier first.
 4. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
 5. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
@@ -100,6 +100,7 @@ Use `Ultra Lite` when:
 Use `Lite` when:
 - you need a runnable midweight workflow
 - you can name owners for `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
+- explicit UI-visible delegation is available if the run is meant to survive final gate and publish
 - one workflow needs structured risk scan and gate review
 - dynamic validation may be needed, but the work still centers on one primary implementation path
 
@@ -107,6 +108,7 @@ Use `Full` when:
 - 5 or more distinct workflow roles need active ownership, excluding a single `Runtime Verifier` added only for state-surface validation
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
+- explicit UI-visible delegation is available if the run is meant to survive final gate and publish
 - `Lite` starts needing repeated human interpretation to pass gate review
 
 ## Fast Tier Check

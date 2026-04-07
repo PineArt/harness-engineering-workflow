@@ -159,7 +159,7 @@ Method:
 - define read and write boundaries
 - record whether explicit UI-visible delegation is available for the run
 - define `Role Owner Table`
-- mark whether the run is exploration-only or intended for final publish
+- mark whether the run is intended for final publish and whether required separation is mechanically satisfied
 - enforce tier-specific owner separation before downstream work starts
 
 Outputs:
@@ -171,10 +171,10 @@ Acceptance:
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
-- if explicit UI-visible delegation is available, a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers before downstream execution starts
-- if explicit UI-visible delegation is available, each delegated agent identifier maps to only one owner within the run
+- a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers from explicit UI-visible subagents before downstream execution starts
+- each delegated agent identifier maps to only one owner within the run
 - hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the delegated-agent requirement for this skill
-- if delegation is unavailable, the run is marked exploration-only rather than claiming final publish separation
+- if required explicit UI-visible delegation is unavailable or not allowed, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 
@@ -425,8 +425,8 @@ Acceptance:
 - traceable
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
-- exploration-only `Full` runs may inform the final publish workflow, but they may not satisfy final `Boundary Integrity` on their own
-- if explicit UI-visible delegation was available for the run, final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
+- `Full` runs missing required explicit UI-visible delegation or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
+- final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton
