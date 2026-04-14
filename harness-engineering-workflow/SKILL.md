@@ -36,18 +36,19 @@ Do not default to the full role set on small tasks.
 Treat `role`, `owner`, and `subagent` as different things:
 - `Role`: the responsibility
 - `Owner`: the accountable executor for that responsibility
-- `Subagent`: the concrete delegated execution slot, but for this skill it counts only when created through an explicit UI-visible subagent flow
+- `Subagent`: the concrete delegated execution slot, but for this skill it counts only when created through an explicit user-visible subagent flow with a distinct `Agent ID`, including terminal/CLI agent flows
 
 Default execution posture:
 - `Ultra Lite`: stay single-owner unless boundaries are unclear
-- `Lite`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 2 distinct subagents before deep execution starts
-- `Full`: if explicit UI-visible delegation is available and the run is intended for final publish, create at least 3 distinct subagents before deep execution starts
-- if a tier requires separated owners and explicit UI-visible delegation is unavailable or not allowed, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
+- `Lite`: if explicit user-visible delegation is available and the run is intended for final publish, create at least 2 distinct subagents before deep execution starts
+- `Full`: if explicit user-visible delegation is available and the run is intended for final publish, create at least 3 distinct subagents before deep execution starts
+- if a tier requires separated owners and explicit user-visible delegation is unavailable or not allowed, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - hidden or background-only delegation such as tool-driven `spawn_agent` does not satisfy this skill's delegation requirement; if that is the only available mechanism, treat delegation as unavailable
+- terminal/CLI agent flows satisfy this requirement when they are explicit, user-visible, and expose distinct `Agent ID` values
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
 Record real agent identifiers in the role table and task graph whenever subagents are used.
-Record only identifiers from explicit UI-visible subagents; background `spawn_agent` identifiers do not count for publish separation.
+Record only identifiers from explicit user-visible subagents; background `spawn_agent` identifiers do not count for publish separation.
 
 ## Operating Rules
 
@@ -58,7 +59,7 @@ Record only identifiers from explicit UI-visible subagents; background `spawn_ag
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
 - If a single agent is nearing context overload, split work into subagents or smaller owned tasks.
-- When delegation is required, use explicit UI-visible subagents only; do not silently create background-only delegated agents.
+- When delegation is required, use explicit user-visible subagents only; do not silently create background-only delegated agents.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
 ## What To Read
@@ -73,7 +74,7 @@ Record only identifiers from explicit UI-visible subagents; background `spawn_ag
 ## Quick Start
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
-2. For `Lite` or `Full`, decide early whether explicit UI-visible delegation is available for this run; if not, stop and redesign instead of downgrading the same run to paper-only separation.
+2. For `Lite` or `Full`, decide early whether explicit user-visible delegation is available for this run; if not, stop and redesign instead of downgrading the same run to paper-only separation.
 3. Open only the file for that tier first.
 4. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
 5. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
@@ -100,7 +101,7 @@ Use `Ultra Lite` when:
 Use `Lite` when:
 - you need a runnable midweight workflow
 - you can name owners for `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`
-- explicit UI-visible delegation is available if the run is meant to survive final gate and publish
+- explicit user-visible delegation is available if the run is meant to survive final gate and publish
 - one workflow needs structured risk scan and gate review
 - dynamic validation may be needed, but the work still centers on one primary implementation path
 
@@ -108,7 +109,7 @@ Use `Full` when:
 - 5 or more distinct workflow roles need active ownership, excluding a single `Runtime Verifier` added only for state-surface validation
 - more than one workflow must converge in parallel
 - environment design or repo structure is part of the task
-- explicit UI-visible delegation is available if the run is meant to survive final gate and publish
+- explicit user-visible delegation is available if the run is meant to survive final gate and publish
 - `Lite` starts needing repeated human interpretation to pass gate review
 
 ## Fast Tier Check
@@ -145,7 +146,7 @@ Lite:
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`
 - one `Decision Log`
-- real agent identifiers for delegated owners when explicit UI-visible delegation is available
+- real agent identifiers for delegated owners when explicit user-visible delegation is available
 
 Full:
 - everything in Lite
