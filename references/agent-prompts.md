@@ -6,9 +6,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
-- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; for any publishable run, assign at least 2 distinct explicit user-visible subagents across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; for any publishable run, establish at least 2 distinct independent context boundaries across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
 - `Lite` or `Full`: add `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them
-- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; for any publishable run, assign at least 3 distinct explicit user-visible subagents across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; for any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
@@ -26,9 +26,9 @@ Prefer tools and external feedback to establish factual anchors. Do not rely onl
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before deep execution starts.
-Hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy publish separation for this skill.
-Explicit terminal/CLI agent flows count when they are user-visible and have distinct Agent IDs.
-If required explicit user-visible delegation is unavailable or not allowed, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
+Delegation counts only when execution crosses an independent context boundary.
+Different role labels, tool calls, or spawns that remain within the same context do not count.
+If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
 If context starts to overload, actively recommend a subagent or subtask split instead of stuffing more into the same window.
 ```
 
@@ -41,7 +41,7 @@ Tasks:
 1. Compress the user goal into a single Task Brief.
 2. Define Non-goals, Constraints, and Success Criteria.
 3. Design the Task Graph, including parallel blocks, serial blocks, and human decision points.
-4. Assign one unique owner to each agent, record delegated agent identifiers where available, and define named `Outputs` plus one unique `Writable Area` for each task.
+4. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
 5. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
 6. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
 7. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
@@ -49,7 +49,7 @@ Tasks:
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
-If only hidden/background delegation is available, treat delegation as unavailable, stop the run, and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
+If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
 ```
 
 ## 2. Source Analyst
@@ -188,7 +188,7 @@ Also check:
 - whether the Required Evidence Fields are complete
 - whether any Context Overflow Triggers have fired and been handled correctly
 - whether the `Gate Decision` fields match `artifact-registry.md`
-- whether required separated owners are backed by real delegated agent identifiers when explicit user-visible delegation was available for the run
+- whether required separated owners are backed by real independent context boundaries when the run requires them
 
 Use the verdict, field-population, and replay rules from [checklists.md](checklists.md) as the single source of truth.
 Do not give vague conclusions.
@@ -241,9 +241,9 @@ Ultra Lite:
 
 Lite:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator fills the role owner table and records whether explicit user-visible delegation is available
+2. S1 Orchestrator fills the role owner table and records whether the required independent context boundaries can be established
 3. S2 Orchestrator produces Context Pack
-4. S3 Orchestrator writes Task Graph and binds at least 2 distinct explicit user-visible subagents across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
+4. S3 Orchestrator writes Task Graph and binds at least 2 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
 5. S4 Implementer executes and produces Execution Output Record
 6. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 7. S5 Critic produces Risk Register
@@ -258,7 +258,7 @@ Full:
 3. S2 Orchestrator produces Context Pack
 4. S2 Source Analyst produces Claims List / Evidence Map
 5. S2 Principle Mapper produces Principle Set
-6. S3 Orchestrator produces Task Graph and binds at least 3 distinct explicit user-visible subagents across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
+6. S3 Orchestrator produces Task Graph and binds at least 3 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
 7. S3 Workflow Designer consumes Task Graph and produces Workflow Draft
 8. S4 Implementer executes and produces Execution Output Record
 9. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification

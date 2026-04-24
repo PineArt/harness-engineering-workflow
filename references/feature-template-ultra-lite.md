@@ -100,12 +100,12 @@ Required Tools: <Validation path and required tools>
 `Role Owner Table` seed:
 
 ```text
-Role | Owner | Agent ID | Shared? | Notes
-Orchestrator | <Assign if needed for boundary clarification> | <N/A or delegated id> | <Yes/No> | Add when Lite needs explicit coordination
-Implementer | <Owner> | <N/A or delegated id> | <Yes/No> | Carried forward from Ultra Lite
-Runtime Verifier | <Assign when state-surface validation is needed> | <N/A or delegated id> | <Yes/No> | Add when correctness depends on pre-existing state or independent dynamic verification
-Critic | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
-Quality Gate | <Assign> | <N/A or delegated id> | <Yes/No> | Required in Lite
+Role | Owner | Context Boundary | Shared? | Notes
+Orchestrator | <Assign if needed for boundary clarification> | <Main or delegated context> | <Yes/No> | Add when Lite needs explicit coordination
+Implementer | <Owner> | <Main or delegated context> | <Yes/No> | Carried forward from Ultra Lite
+Runtime Verifier | <Assign when state-surface validation is needed> | <Main or delegated context> | <Yes/No> | Add when correctness depends on pre-existing state or independent dynamic verification
+Critic | <Assign> | <Main or delegated context> | <Yes/No> | Required in Lite
+Quality Gate | <Assign> | <Main or delegated context> | <Yes/No> | Required in Lite
 ```
 
 ## 6. Escalate To Lite If

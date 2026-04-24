@@ -157,7 +157,7 @@ Method:
 - define a unified output format
 - define status, version, and log fields
 - define read and write boundaries
-- record whether explicit user-visible delegation is available for the run
+- record whether the required independent context boundaries can be established for the run
 - define `Role Owner Table`
 - mark whether the run is intended for final publish and whether required separation is mechanically satisfied
 - enforce tier-specific owner separation before downstream work starts
@@ -171,10 +171,10 @@ Acceptance:
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
-- a publishable `Full` workflow maps those owners to at least 3 distinct delegated agent identifiers from explicit user-visible subagents before downstream execution starts
-- each delegated agent identifier maps to only one owner within the run
-- hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the delegated-agent requirement for this skill
-- if required explicit user-visible delegation is unavailable or not allowed, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
+- a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries before downstream execution starts
+- each delegated context boundary maps to only one owner within the run
+- different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
+- if the required independent context boundaries cannot be established, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 
@@ -224,14 +224,14 @@ Method:
 - define parallel blocks
 - define serial dependencies
 - define owner
-- bind delegated agent identifiers where explicit user-visible delegation is available
+- bind delegated context boundaries where delegation is used
 - define named outputs and `Writable Area` for every task
 - define termination conditions
 - define human decision points
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
-- for publishable delegated `Full` runs, instantiate the minimum required distinct explicit user-visible subagents before deep execution starts
+- for publishable delegated `Full` runs, establish the minimum required distinct independent context boundaries before deep execution starts
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -240,8 +240,8 @@ Outputs:
 
 Acceptance:
 - every node has exactly one owner
-- every delegated node is bound to one concrete agent identifier
-- every delegated `Owner` / `Agent ID` pair matches the `Role Owner Table`
+- every delegated node is bound to one concrete context boundary
+- every delegated `Owner` / `Context Boundary` pair matches the `Role Owner Table`
 - dependencies are clear and there are no responsibility gaps
 - no very long chain is forced into one agent
 
@@ -425,8 +425,8 @@ Acceptance:
 - traceable
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
-- `Full` runs missing required explicit user-visible delegation or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
-- final publish evidence includes at least 3 distinct delegated agent identifiers across the required separated owners
+- `Full` runs missing required independent context boundaries or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
+- final publish evidence includes at least 3 distinct context boundaries across the required separated owners
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton

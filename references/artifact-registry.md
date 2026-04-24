@@ -40,14 +40,15 @@ Human Decision Points:
 ### Role Owner Table
 
 ```text
-Role | Owner | Agent ID | Shared? | Notes
+Role | Owner | Context Boundary | Shared? | Notes
 ```
 
 Field notes:
-- `Agent ID` is the concrete delegated agent identifier from an explicit user-visible subagent when delegation is used, including terminal/CLI agent flows; otherwise use `N/A`
+- `Context Boundary` names the execution context used by the owner; this is the hard separation record for delegation
 - `Shared?` is `Yes` or `No`
-- within a run, one `Agent ID` may map to only one `Owner`
-- if multiple rows share one `Agent ID`, they must also share the same `Owner`, and `Shared?` must be `Yes`
+- within a run, one `Context Boundary` may map to only one `Owner`
+- if multiple rows share one `Context Boundary`, they must also share the same `Owner`, and `Shared?` must be `Yes`
+- record an `Agent ID` or mechanism-specific handle in `Notes` only when useful; it is optional and does not prove context independence
 
 ### `Execution Environment Spec`
 
@@ -75,7 +76,7 @@ Required Tools:
 ```text
 Task:
 Owner:
-Agent ID:
+Context Boundary:
 Depends On:
 Outputs:
 Writable Area:
@@ -83,8 +84,8 @@ Fallback:
 ```
 
 Field notes:
-- when delegation is used, the `Owner` / `Agent ID` pair must match an existing row in the `Role Owner Table`
-- hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy this `Agent ID` field
+- when delegation is used, the `Owner` / `Context Boundary` pair must match an existing row in the `Role Owner Table`
+- different role labels, tool calls, or spawns that remain within the same context do not satisfy this field
 
 ### `Workflow Draft`
 

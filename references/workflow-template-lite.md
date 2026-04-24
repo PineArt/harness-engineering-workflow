@@ -48,10 +48,10 @@ Add these only when the task requires them:
 - `Principle Mapper`
 - `Template Editor`
 
-The role table must name an explicit owner and record the concrete agent identifier for each owner from an explicit user-visible subagent:
+The role table must name an explicit owner and record the context boundary used by each owner. Agent IDs may be noted when useful, but they are not the hard separation rule:
 
 ```text
-Role | Owner | Agent ID | Shared? | Notes
+Role | Owner | Context Boundary | Shared? | Notes
 Orchestrator |  |  |  |
 Implementer |  |  |  |
 Critic |  |  |  |
@@ -59,12 +59,11 @@ Quality Gate |  |  |  |
 ```
 
 Notes:
-- `Role`, `Owner`, and `Agent ID` are not interchangeable.
-- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners backed by at least 2 distinct `Agent ID` values before `S4`.
-- One `Agent ID` may not back more than one `Owner` in the same run.
-- Hidden or background-only tool-driven delegation such as `spawn_agent` does not satisfy the `Agent ID` requirement for this skill.
-- Terminal/CLI agent flows count when they are explicit, user-visible, and expose distinct `Agent ID` values.
-- If explicit user-visible delegation is unavailable or not allowed, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
+- `Role`, `Owner`, and `Context Boundary` are not interchangeable.
+- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners backed by at least 2 distinct independent context boundaries before `S4`.
+- One `Context Boundary` may not back more than one `Owner` in the same run.
+- Different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement.
+- If the required independent context boundaries cannot be established, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
 - Single-owner execution in `Lite` is a fatal `Boundary Integrity` failure.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
@@ -91,7 +90,7 @@ Required Tools:
 ```text
 Task:
 Owner:
-Agent ID:
+Context Boundary:
 Depends On:
 Outputs:
 Writable Area:
@@ -102,8 +101,8 @@ At minimum, define:
 - parallel blocks
 - serial blocks
 - one unique owner per task
-- one bound `Agent ID` from an explicit user-visible subagent per delegated task
-- delegated tasks only reuse an `Agent ID` when they also reuse the same `Owner`
+- one bound `Context Boundary` per delegated task
+- delegated tasks only reuse a `Context Boundary` when they also reuse the same `Owner`
 - named `Outputs` and one unique `Writable Area`
 - human decision points
 
@@ -222,7 +221,7 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
 Single-owner `Lite` is a fatal `Boundary Integrity` failure. Do not publish; tell the user final-result quality is uncontrollable.
-If explicit user-visible delegation is unavailable for the run, or owner separation exists only on paper without real delegated `Agent ID` values from explicit user-visible subagents, treat that as a fatal `Boundary Integrity` failure and stop.
+If the required independent context boundaries cannot be established for the run, or owner separation exists only on paper without real context separation, treat that as a fatal `Boundary Integrity` failure and stop.
 Do not enter `S8` unless the latest `Gate Decision` verdict is `Pass`.
 
 Before publish, at minimum have:
@@ -230,7 +229,7 @@ Before publish, at minimum have:
 - [ ] `Task Brief`
 - [ ] role owner table
 - [ ] at least 2 distinct role owners
-- [ ] at least 2 distinct delegated `Agent ID` values backing those owners
+- [ ] at least 2 distinct context boundaries backing those owners
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

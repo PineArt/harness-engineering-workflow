@@ -10,7 +10,7 @@ The repository root is the installable skill folder.
 - Display name: `Harness Workflow`
 - Invocation style: explicit only
 - Trigger form: `$harness-engineering-workflow`
-- Delegation mode: explicit user-visible subagents with distinct Agent IDs, including terminal/CLI agent flows; hidden/background `spawn_agent` runs do not count
+- Delegation mode: independent context boundaries; role labels, tool calls, or spawns that stay in the same context do not count
 
 Use this skill when the task needs a reusable workflow with tiering from `Ultra Lite` to `Full`, plus role ownership, context packaging, gate review, and result acceptance.
 
@@ -98,13 +98,13 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 
 - `Ultra Lite` is for low-risk, tightly bounded work where 1 owner and 1 strong validation path are enough for final publish.
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
-- `Lite` final publish requires at least 2 distinct owners backed by at least 2 explicit user-visible subagents with distinct `Agent ID` values.
-- For this skill, delegated owners count only when backed by explicit user-visible subagents with distinct `Agent ID` values, including terminal/CLI agent flows. Hidden/background `spawn_agent` runs are treated as delegation-unavailable and are a fatal `Boundary Integrity` failure for publish-separation tiers.
+- `Lite` final publish requires at least 2 distinct owners backed by at least 2 independent context boundaries.
+- For this skill, delegation counts only when execution crosses an independent context boundary. Role labels, tool calls, or spawns that remain within the same context do not satisfy publish separation.
 - In publishable `Lite`, `Implementer` may not also own `Quality Gate`.
-- `Full` final publish requires at least 3 distinct owners.
+- `Full` final publish requires at least 3 distinct owners backed by at least 3 independent context boundaries.
 - In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.
 - In publishable `Full`, `Quality Gate` may not also own `Orchestrator`.
-- Do not relabel missing explicit user-visible delegation or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.
+- Do not relabel missing required independent context boundaries or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.
 
 ## Source Of Truth
 
