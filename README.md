@@ -2,7 +2,7 @@
 
 This repository contains a Codex skill for running a structured Harness Engineering workflow. The workflow is designed for tasks that need explicit owners, workflow artifacts, validation gates, and a repo-centered operating model instead of a one-off chat response.
 
-The installable skill lives in [harness-engineering-workflow](./harness-engineering-workflow). The repository root is for packaging and documentation; it is not itself a skill folder.
+The repository root is the installable skill folder.
 
 ## Skill Summary
 
@@ -28,31 +28,29 @@ In practice, `Planner` maps most closely to `Orchestrator + Workflow Designer`, 
 ## Repository Layout
 
 ```text
-harness-engineering/
+harness-engineering-workflow/
 |-- README.md
-|-- harness-engineering-workflow/
-|   |-- SKILL.md
-|   |-- agents/
-|   |   `-- openai.yaml
-|   `-- references/
-|       |-- workflow-template.md
-|       |-- workflow-template-lite.md
-|       |-- feature-template-ultra-lite.md
-|       |-- checklists.md
-|       |-- artifact-registry.md
-|       `-- agent-prompts.md
-`-- materials/
+|-- SKILL.md
+|-- agents/
+|   `-- openai.yaml
+`-- references/
+    |-- workflow-template.md
+    |-- workflow-template-lite.md
+    |-- feature-template-ultra-lite.md
+    |-- checklists.md
+    |-- artifact-registry.md
+    `-- agent-prompts.md
 ```
 
 ## Install
 
-Install by copying the skill subfolder into your Codex skills directory.
+Install by copying this repository root into your Codex skills directory.
 
 PowerShell:
 
 ```powershell
 Copy-Item -Recurse -Force `
-  ".\harness-engineering-workflow" `
+  "." `
   "$HOME\.codex\skills\harness-engineering-workflow"
 ```
 
@@ -70,7 +68,7 @@ Validate the source skill directory with the standard quick validator:
 
 ```powershell
 python "$HOME\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
-  ".\harness-engineering-workflow"
+  "."
 ```
 
 Validate the installed copy the same way:
@@ -111,6 +109,6 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 ## Source Of Truth
 
 - Human-facing entrypoint: [README.md](./README.md)
-- Skill entrypoint: [SKILL.md](./harness-engineering-workflow/SKILL.md)
-- UI metadata: [agents/openai.yaml](./harness-engineering-workflow/agents/openai.yaml)
-- Workflow references: [references/](./harness-engineering-workflow/references)
+- Skill entrypoint: [SKILL.md](./SKILL.md)
+- UI metadata: [agents/openai.yaml](./agents/openai.yaml)
+- Workflow references: [references/](./references)
