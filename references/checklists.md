@@ -15,6 +15,7 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] any `Lite` workflow intended for publish uses at least 2 distinct owners
 - [ ] any `Full` workflow intended for publish uses at least 3 distinct owners
 - [ ] any workflow intended for publish in a tier with separated owners is backed by the required independent context boundaries
+- [ ] any publishable `Lite` or `Full` workflow that assigns `Critic` but not `Quality Gate` to an external context satisfies the `External-Critic-Only Quality Gate Rule`
 - [ ] no required context boundary is assigned to more than one owner in the same run
 - [ ] parallel tasks do not share the same writable area
 
@@ -27,7 +28,24 @@ Other files should reference these gates by name instead of redefining them.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - For `Lite` final publish, use `Fail` if the workflow has only 1 distinct owner, if `Implementer` also owns `Quality Gate`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For `Full` final publish, use `Fail` if the workflow has fewer than 3 distinct owners, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if `Quality Gate` also owns `Orchestrator`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
+- For any publishable `Lite` or `Full` workflow, use `Fail` if `Quality Gate` is not explicitly assigned or if it shares the implementation context boundary.
 - Use `Fail` if a change depends on pre-existing state but the workflow does not validate against a real pre-existing state surface.
+
+### External-Critic-Only Quality Gate Rule
+
+When an external context such as Opus is assigned to `Critic` but not `Quality Gate` while the main context owns implementation:
+- `Lite`: assign `Quality Gate` to a separate independent context boundary.
+- `Full`: assign `Quality Gate` to a third independent context boundary.
+- default to a local independent subagent when no separate gate owner is already available.
+
+Missing this rule before implementation proceeds is a fatal `Boundary Integrity` failure.
+
+### Advisor Constraints
+
+- `Advisor` is optional and advisory-only.
+- `Advisor` can propose direction, trade-offs, debate positions, and options, but it does not satisfy `Critic` or `Quality Gate`.
+- External `Advisor` output does not change publish-separation requirements.
+- `Advisor` can own `Critic` or `Quality Gate` only when explicitly assigned to that role and producing that role's required artifact.
 
 ### Blocking Gates
 
@@ -79,14 +97,19 @@ This file is canonical for gate verdict rules and replay semantics.
 
 - [ ] roles are not overlapping excessively
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow
+- [ ] `Quality Gate` is explicitly assigned for any publishable `Lite` or `Full` workflow
+- [ ] `Quality Gate` uses an independent context boundary separate from the implementation context for any publishable `Lite` or `Full` workflow
 - [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
 - [ ] publishable `Lite` workflows are backed by at least 2 distinct independent context boundaries
+- [ ] external `Critic` coverage without external `Quality Gate` coverage in publishable `Lite` satisfies the `External-Critic-Only Quality Gate Rule`; the general same-owner exception does not apply to this failure mode
+- [ ] `Advisor` output is not counted as `Critic`, `Quality Gate`, or publish-separation evidence unless that owner is explicitly assigned to the role and produces the required artifact
 - [ ] any shared `Context Boundary` rows also share the same `Owner`
 - [ ] if `Critic` and `Quality Gate` share an owner, the role table notes explain why stronger separation is unnecessary
 - [ ] publishable `Full` workflows use at least 3 distinct owners
 - [ ] `Implementer`, `Critic`, and `Quality Gate` have different owners for any publishable `Full` workflow
 - [ ] `Quality Gate` does not share an owner with `Orchestrator` for any publishable `Full` workflow
 - [ ] publishable `Full` workflows are backed by at least 3 distinct independent context boundaries
+- [ ] external `Critic` coverage without external `Quality Gate` coverage in publishable `Full` satisfies the `External-Critic-Only Quality Gate Rule`
 - [ ] every delegated task's `Owner` / `Context Boundary` pair matches the `Role Owner Table`
 - [ ] no agent is silently making final human decisions
 - [ ] write ownership is clear

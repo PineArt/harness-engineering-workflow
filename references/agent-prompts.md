@@ -6,9 +6,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
-- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; for any publishable run, establish at least 2 distinct independent context boundaries across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
-- `Lite` or `Full`: add `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them
-- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; for any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; for any publishable run, establish at least 2 distinct independent context boundaries across the required separated owners when role owners are assigned and before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Lite` or `Full`: add `Advisor`, `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them; `Advisor` does not affect boundary requirements
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; for any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners when role owners are assigned and before deep execution starts, or stop with a fatal `Boundary Integrity` failure
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
@@ -26,6 +26,8 @@ Prefer tools and external feedback to establish factual anchors. Do not rely onl
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before deep execution starts.
+For publishable Lite or Full, if an external context covers Critic but not Quality Gate while the main context owns implementation, apply the External-Critic-Only Quality Gate Rule from checklists.md.
+Advisor output does not satisfy Critic, Quality Gate, or publish-separation requirements unless the same owner is explicitly assigned to that role and produces the required artifact.
 Delegation counts only when execution crosses an independent context boundary.
 Different role labels, tool calls, or spawns that remain within the same context do not count.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
@@ -46,6 +48,7 @@ Tasks:
 6. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
 7. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
 8. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+9. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
@@ -139,7 +142,23 @@ Do not:
 - repeat large summaries
 ```
 
-## 7. Runtime Verifier
+## 7. Advisor
+
+```text
+You are the Advisor.
+
+Tasks:
+1. Generate options, debate trade-offs, and surface decision points.
+2. Use modes such as Strategy, Pro, Con, Option Generator, or Red Team when useful.
+3. Produce an `Advisory Note` with question, mode, position, recommendation, risks, and open questions.
+
+Do not:
+- substitute for `Critic` or `Quality Gate`
+- validate correctness or issue pass/fail verdicts
+- treat advice as a binding decision
+```
+
+## 8. Runtime Verifier
 
 ```text
 You are the Runtime Verifier.
@@ -156,7 +175,7 @@ Do not:
 - issue the final gate verdict
 ```
 
-## 8. Quality Gate
+## 9. Quality Gate
 
 ```text
 You are the Quality Gate.
@@ -189,12 +208,13 @@ Also check:
 - whether any Context Overflow Triggers have fired and been handled correctly
 - whether the `Gate Decision` fields match `artifact-registry.md`
 - whether required separated owners are backed by real independent context boundaries when the run requires them
+- whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 
 Use the verdict, field-population, and replay rules from [checklists.md](checklists.md) as the single source of truth.
 Do not give vague conclusions.
 ```
 
-## 9. Template Editor
+## 10. Template Editor
 
 ```text
 You are the Template Editor.
@@ -210,7 +230,7 @@ Do not:
 - remove key constraints
 ```
 
-## 10. Human Decision Maker
+## 11. Human Decision Maker
 
 ```text
 You are the Human Decision Maker.
@@ -232,7 +252,7 @@ Every decision must be appended to the same `Decision Log`, and must include at 
 Do not return to executing every implementation detail personally.
 ```
 
-## 11. Example Run Orders
+## 12. Example Run Orders
 
 ```text
 Ultra Lite:
@@ -241,7 +261,7 @@ Ultra Lite:
 
 Lite:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator fills the role owner table and records whether the required independent context boundaries can be established
+2. S1 Orchestrator fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed
 3. S2 Orchestrator produces Context Pack
 4. S3 Orchestrator writes Task Graph and binds at least 2 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
 5. S4 Implementer executes and produces Execution Output Record
@@ -254,7 +274,7 @@ Lite:
 
 Full:
 1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator produces Execution Environment Spec, Role Owner Table, and delegation posture
+2. S1 Orchestrator produces Execution Environment Spec, Role Owner Table, delegation posture, and the required three independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed
 3. S2 Orchestrator produces Context Pack
 4. S2 Source Analyst produces Claims List / Evidence Map
 5. S2 Principle Mapper produces Principle Set
@@ -268,4 +288,9 @@ Full:
 13. S7 Orchestrator appends the gate outcome to `Decision Log`
 14. S8 Template Editor produces the final template
 15. S8 Human Decision Maker freezes the version and appends `Decision Log`
+
+Advisor:
+- optional at S1, S3, S5, or another assigned decision point
+- produces `Advisory Note`
+- does not replace any required Lite or Full step
 ```

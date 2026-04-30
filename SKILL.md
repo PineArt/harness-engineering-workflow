@@ -27,7 +27,7 @@ For `Lite`, start with these 4 roles:
 - `Critic`
 - `Quality Gate`
 
-Only add more roles such as `Runtime Verifier`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
+Only add more roles such as `Advisor`, `Runtime Verifier`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
 
 Do not default to the full role set on small tasks.
 
@@ -40,13 +40,17 @@ Treat `role`, `owner`, and `subagent` as different things:
 
 Default execution posture:
 - `Ultra Lite`: stay single-owner unless boundaries are unclear
-- `Lite`: if the run is intended for final publish, establish at least 2 distinct independent context boundaries before deep execution starts
-- `Full`: if the run is intended for final publish, establish at least 3 distinct independent context boundaries before deep execution starts
+- `Lite`: if the run is intended for final publish, establish at least 2 distinct independent context boundaries when role owners are assigned and before deep execution starts
+- `Full`: if the run is intended for final publish, establish at least 3 distinct independent context boundaries when role owners are assigned and before deep execution starts
+- `Lite` or `Full`: if an external context covers `Critic` but not `Quality Gate` while the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` from [references/checklists.md](references/checklists.md)
 - if a tier requires separated owners and the run cannot establish the required independent context boundaries, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
+Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
+For publishable `Lite` and `Full`, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
 Record context boundaries in the role table and task graph whenever delegated work is used.
+Do not defer missing publish-separation boundaries to final review; create or request the missing independent context before implementation proceeds.
 Agent identifiers may be recorded when available, but they are supporting evidence only and do not prove context independence.
 
 ## Operating Rules

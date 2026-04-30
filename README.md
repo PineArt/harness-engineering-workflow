@@ -104,6 +104,9 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - `Full` final publish requires at least 3 distinct owners backed by at least 3 independent context boundaries.
 - In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.
 - In publishable `Full`, `Quality Gate` may not also own `Orchestrator`.
+- In publishable `Lite` or `Full`, `Quality Gate` must be explicitly assigned and independent from the implementation context.
+- `Advisor` may provide direction, debate, or options, but does not satisfy `Critic`, `Quality Gate`, or publish separation by itself.
+- If an external context covers `Critic` but not `Quality Gate` while the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` in [references/checklists.md](./references/checklists.md).
 - Do not relabel missing required independent context boundaries or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.
 
 ## Source Of Truth

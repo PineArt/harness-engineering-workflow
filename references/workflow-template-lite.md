@@ -41,6 +41,7 @@ Human Decision Points:
 - `Quality Gate`
 
 Add these only when the task requires them:
+- `Advisor`
 - `Runtime Verifier`
 - `Source Analyst`
 - `Workflow Designer`
@@ -60,14 +61,17 @@ Quality Gate |  |  |  |
 
 Notes:
 - `Role`, `Owner`, and `Context Boundary` are not interchangeable.
-- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners backed by at least 2 distinct independent context boundaries before `S4`.
+- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners backed by at least 2 distinct independent context boundaries during `S1`, before `S4`.
 - One `Context Boundary` may not back more than one `Owner` in the same run.
 - Different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement.
 - If the required independent context boundaries cannot be established, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
 - Single-owner execution in `Lite` is a fatal `Boundary Integrity` failure.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
+- `Advisor` may be added in `Lite` for direction, debate, or option generation without satisfying `Critic` or `Quality Gate`.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
-- `Critic` and `Quality Gate` may be combined only when the notes record why stronger separation is unnecessary for this task.
+- In a publishable `Lite` workflow, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
+- If an external context is assigned to `Critic` but not `Quality Gate` and the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) during `S1`.
+- `Critic` and `Quality Gate` may be combined only when they share the same owner and the notes record why stronger separation is unnecessary for this task; this exception does not apply under the `External-Critic-Only Quality Gate Rule`.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
 - If the work needs 5 or more distinct workflow roles to have active ownership, excluding a single `Runtime Verifier` added only for state-surface validation, escalate directly to `Full`.
 

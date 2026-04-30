@@ -118,6 +118,7 @@ Escalate to `workflow-template-lite.md` if any of the following is true:
 - the scope starts expanding
 - requirement boundaries need human arbitration
 - explicit risk tracking needs to be preserved
+- an external context is assigned to `Critic` but not `Quality Gate` while the main context owns implementation, because `Lite` must apply the `External-Critic-Only Quality Gate Rule`
 - the only available validation is a weak validation path from Section 4, such as a successful build or a coarse manual check
 - the task affects correctness-critical behavior such as integrity, durability, recovery, ordering, security, or externally visible contract semantics
 - the task would need role separation to make the final publish decision credible

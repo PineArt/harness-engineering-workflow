@@ -17,6 +17,7 @@ If this file is unavailable during execution, restore it from version control be
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
 | `Runtime Evidence Record` | `Runtime Verifier` | `S4` | `Lite`, `Full` when state-surface validation is required |
 | `Risk Register` | `Critic` | `S5` | `Lite`, `Full` |
+| `Advisory Note` | `Advisor` | decision point | `Lite`, `Full` when `Advisor` is active |
 | `Unified Draft` | `Orchestrator` | `S6` | `Full` |
 | `Open Questions` | `Orchestrator` | `S6` | `Full` |
 | `Integration Ledger` | `Orchestrator` | `S6` | `Lite`, `Full` |
@@ -162,6 +163,23 @@ Status:
 - `Open`
 - `Mitigating`
 - `Closed`
+
+### `Advisory Note`
+
+```text
+Question:
+Mode:
+Position:
+Recommendation:
+Risks:
+Open Questions:
+```
+
+Field notes:
+- `Mode` may be `Strategy`, `Pro`, `Con`, `Option Generator`, or `Red Team`
+- `Advisory Note` is input to decision-making, not a `Risk Register` or `Gate Decision`
+- it may be produced before S1, S3, S5, or any other decision point where direction, debate, or option generation is useful
+- multiple `Advisory Note` entries may exist for the same decision point
 
 ### `Unified Draft`
 

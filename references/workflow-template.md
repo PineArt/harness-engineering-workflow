@@ -104,6 +104,7 @@ AI-friendly tools to prioritize:
 | `Implementer` | produce code or documentation outputs | task brief, context pack | patch, draft, tests | rewrite upstream goals |
 | `Runtime Verifier` | produce runtime evidence against real state surfaces | task graph, context pack, running system state | `Runtime Evidence Record` | substitute synthetic state for the required pre-existing state without explicit approval |
 | `Critic` | find gaps, conflicts, and risks | drafts, process records | `Risk Register`, `Revision Requests` | become the primary narrative writer |
+| `Advisor` | propose direction, options, and debate positions | task brief, context pack, decision question | `Advisory Note` | substitute for `Critic` or `Quality Gate` |
 | `Quality Gate` | decide whether the work passes gate review | artifacts from all phases | `Pass`, `Conditional Pass`, `Fail` | modify the content directly |
 | `Template Editor` | package the result into reusable assets | approved content | `Reusable Template`, `Runbook` | change the core conclusions |
 | `Human Decision Maker` | make directional decisions | pending decisions, residual risks | `Decision Log` | fall back to executing every detail personally |
@@ -112,6 +113,7 @@ Artifact schemas and ownership are canonical in `artifact-registry.md`.
 
 For escalation thresholds, count distinct workflow roles that need active ownership in the current run, not task count or subtask count.
 `Runtime Verifier` may be added to `Lite` without immediate escalation when it is the only optional role beyond the default four and the workflow still centers on one primary implementation path.
+`Advisor` is optional and may be used for direction, debate, or option generation; it does not satisfy `Critic`, `Quality Gate`, or publish-separation requirements by itself.
 
 ## 5. Phase-by-Phase Workflow
 
@@ -161,6 +163,7 @@ Method:
 - define `Role Owner Table`
 - mark whether the run is intended for final publish and whether required separation is mechanically satisfied
 - enforce tier-specific owner separation before downstream work starts
+- in publishable `Full`, apply the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) before downstream work starts
 
 Outputs:
 - `Execution Environment Spec`
@@ -171,12 +174,13 @@ Acceptance:
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
-- a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries before downstream execution starts
+- a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries during `S1`, before downstream execution starts
 - each delegated context boundary maps to only one owner within the run
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 - if the required independent context boundaries cannot be established, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
+- in any publishable `Lite` or `Full` workflow, `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 
 Fallback:
 - if outputs cannot be merged cleanly, fix the environment before continuing
@@ -229,9 +233,10 @@ Method:
 - define termination conditions
 - define human decision points
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
+- assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Critic` or `Quality Gate`
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
-- for publishable delegated `Full` runs, establish the minimum required distinct independent context boundaries before deep execution starts
+- for publishable delegated `Full` runs, verify the minimum required distinct independent context boundaries were established during `S1`; if not, create or request the missing independent boundary before deep execution starts
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -427,6 +432,7 @@ Acceptance:
 - result acceptance is clear and does not depend on line-by-line human review
 - `Full` runs missing required independent context boundaries or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
 - final publish evidence includes at least 3 distinct context boundaries across the required separated owners
+- external `Critic` coverage without external `Quality Gate` coverage satisfies the `External-Critic-Only Quality Gate Rule`
 
 Fallback:
 - if oral explanation is still required, return to the templated steps and fill in the missing skeleton
