@@ -6,9 +6,9 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
-- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; for any publishable run, establish at least 2 distinct independent context boundaries across the required separated owners when role owners are assigned and before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; before `S2`, declare publish intent or record non-publish exploration. For any publishable run, assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners on at least 3 distinct independent context boundaries, or stop with a fatal `Boundary Integrity` failure
 - `Lite` or `Full`: add `Advisor`, `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them; `Advisor` does not affect boundary requirements
-- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; for any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners when role owners are assigned and before deep execution starts, or stop with a fatal `Boundary Integrity` failure
+- `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; before `S2`, declare publish intent or record non-publish exploration. For any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners when role owners are assigned, or stop with a fatal `Boundary Integrity` failure
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
 
@@ -28,9 +28,10 @@ For Ultra Lite, the single Owner writes the goal/scope block and completes `Pref
 For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
 Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the Responsibility Matrix in artifact-registry.md or ask Orchestrator to assign one.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
-If publish separation requires distinct delegated owners, create or request that split before deep execution starts.
+If publish separation requires distinct delegated owners, create or request that split before `S2`.
 For publishable Lite or Full, if an external context covers Critic but not Quality Gate while the main context owns implementation, apply the External-Critic-Only Quality Gate Rule from checklists.md.
 Advisor output does not satisfy Critic, Quality Gate, or publish-separation requirements unless the same owner is explicitly assigned to that role and produces the required artifact.
+For publishable Lite or Full, Orchestrator must not own Implementer or Quality Gate.
 Delegation counts only when execution crosses an independent context boundary.
 Different role labels, tool calls, or spawns that remain within the same context do not count.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
@@ -271,9 +272,9 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; do not enter S2 until the table is written
+3. S1 Orchestrator declares publish intent or non-publish exploration, fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
-5. S3 Orchestrator writes Task Graph and binds at least 2 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
+5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
 6. S4 Implementer executes and produces Execution Output Record
 7. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 8. S5 Critic produces Risk Register
@@ -285,7 +286,7 @@ Lite:
 Full:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, delegation posture, and the required three independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; do not enter S2 until S1 artifacts are written
+3. S1 Orchestrator declares publish intent or non-publish exploration and produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, delegation posture, and the required independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries
 4. S2 Orchestrator produces Context Pack
 5. S2 Source Analyst produces Claims List / Evidence Map
 6. S2 Principle Mapper produces Principle Set; do not enter S3 until required S2 artifacts are written

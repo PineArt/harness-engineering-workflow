@@ -18,7 +18,7 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] any equivalent artifact location has an owner, is writable, accessible, and explicitly declared
 - [ ] every concrete workflow action has an owner, using the `Responsibility Matrix` in `artifact-registry.md` when ownership is not otherwise explicit
 - [ ] each role has an explicit owner
-- [ ] any `Lite` workflow intended for publish uses at least 2 distinct owners
+- [ ] any `Lite` workflow intended for publish uses separate accountable owners for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] any `Full` workflow intended for publish uses at least 3 distinct owners
 - [ ] any workflow intended for publish in a tier with separated owners is backed by the required independent context boundaries
 - [ ] any publishable `Lite` or `Full` workflow that assigns `Critic` but not `Quality Gate` to an external context satisfies the `External-Critic-Only Quality Gate Rule`
@@ -33,8 +33,8 @@ Other files should reference these gates by name instead of redefining them.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - Use `Fail` for any `Lite` or `Full` run if the required `Run Workspace` was not declared before `S0`, or if `S0` through `S3` step-closure artifacts were created only after the next step or task-specific execution had already started.
-- For `Lite` final publish, use `Fail` if the workflow has only 1 distinct owner, if `Implementer` also owns `Quality Gate`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
-- For `Full` final publish, use `Fail` if the workflow has fewer than 3 distinct owners, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if `Quality Gate` also owns `Orchestrator`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
+- For `Lite` final publish, use `Fail` if publish intent was not declared before `S2`, if the workflow does not assign separate accountable owners to `Orchestrator`, `Implementer`, and `Quality Gate`, if the required independent context boundaries cannot be established before `S2`, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
+- For `Full` final publish, use `Fail` if publish intent was not declared before `S2`, if the workflow has fewer than 3 distinct owners, if `Orchestrator` owns `Implementer` or `Quality Gate`, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if the required independent context boundaries cannot be established before `S2`, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For any publishable `Lite` or `Full` workflow, use `Fail` if `Quality Gate` is not explicitly assigned or if it shares the implementation context boundary.
 - Use `Fail` if a change depends on pre-existing state but the workflow does not validate against a real pre-existing state surface.
 
@@ -108,10 +108,12 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Orchestrator` enforced step-closure gates and returned to the failed step on missing or field-invalid artifacts
 - [ ] every fallback, replay, restore, publish, escalation, and context-split action has an accountable owner
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow
+- [ ] publish intent or non-publish exploration was recorded before `S2` for any `Lite` or `Full` workflow
 - [ ] `Quality Gate` is explicitly assigned for any publishable `Lite` or `Full` workflow
 - [ ] `Quality Gate` uses an independent context boundary separate from the implementation context for any publishable `Lite` or `Full` workflow
+- [ ] `Orchestrator` does not own `Implementer` or `Quality Gate` for any publishable `Lite` or `Full` workflow
 - [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
-- [ ] publishable `Lite` workflows are backed by at least 2 distinct independent context boundaries
+- [ ] publishable `Lite` workflows are backed by at least 3 distinct independent context boundaries for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] external `Critic` coverage without external `Quality Gate` coverage in publishable `Lite` satisfies the `External-Critic-Only Quality Gate Rule`; the general same-owner exception does not apply to this failure mode
 - [ ] `Advisor` output is not counted as `Critic`, `Quality Gate`, or publish-separation evidence unless that owner is explicitly assigned to the role and produces the required artifact
 - [ ] any shared `Context Boundary` rows also share the same `Owner`

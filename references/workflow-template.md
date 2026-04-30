@@ -166,7 +166,8 @@ Method:
 - define read and write boundaries
 - record whether the required independent context boundaries can be established for the run
 - define `Role Owner Table`
-- mark whether the run is intended for final publish and whether required separation is mechanically satisfied
+- mark whether the run is intended for final publish or is non-publish exploration before `S2`
+- for publishable `Lite` and `Full`, assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners on independent context boundaries before `S2`
 - enforce tier-specific owner separation before downstream work starts
 - in publishable `Full`, `Orchestrator` applies the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) before downstream work starts
 
@@ -180,11 +181,13 @@ Acceptance:
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
+- publish intent or non-publish exploration is recorded before `S2`
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
 - a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries during `S1`, before downstream execution starts
 - each delegated context boundary maps to only one owner within the run
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 - if the required independent context boundaries cannot be established, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
+- in any publishable `Lite` or `Full` workflow, `Orchestrator` does not own `Implementer` or `Quality Gate`
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 - in any publishable `Lite` or `Full` workflow, `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
@@ -246,7 +249,7 @@ Method:
 - assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Critic` or `Quality Gate`
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
-- for publishable delegated `Full` runs, `Orchestrator` verifies the minimum required distinct independent context boundaries were established during `S1`; if not, `Orchestrator` creates or requests the missing independent boundary before deep execution starts
+- for publishable delegated `Full` runs, `Orchestrator` verifies the minimum required distinct independent context boundaries were established during `S1`; if not, return to `S1` before entering `S2`
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -278,6 +281,7 @@ Execution entry assertion:
 - `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
 - `Task Brief`, `Execution Environment Spec`, `Run Workspace`, `Role Owner Table`, `Context Pack`, `Task Graph`, and `Workflow Draft` when active must already be written and field-valid in the declared workspace or an explicitly declared equivalent location.
 - Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
+- Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
 
 Method:
 - run analysis, design, implementation, and risk scanning in parallel where appropriate

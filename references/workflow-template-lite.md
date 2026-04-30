@@ -77,6 +77,8 @@ Add these only when the task requires them:
 The role table must name an explicit owner and record the context boundary used by each owner. Agent IDs may be noted when useful, but they are not the hard separation rule:
 
 ```text
+Publish Intent: Publish | Non-publish exploration | N/A
+
 Role | Owner | Context Boundary | Shared? | Notes
 Orchestrator |  |  |  |
 Implementer |  |  |  |
@@ -86,13 +88,15 @@ Quality Gate |  |  |  |
 
 Notes:
 - `Role`, `Owner`, and `Context Boundary` are not interchangeable.
-- A `Lite` workflow intended to pass final gate and publish must use at least 2 distinct owners backed by at least 2 distinct independent context boundaries during `S1`, before `S4`.
+- A `Lite` workflow must declare publish intent or record itself as non-publish exploration during `S1`, before `S2`.
+- A `Lite` workflow intended to pass final gate and publish must assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners backed by at least 3 distinct independent context boundaries during `S1`, before `S2`.
 - One `Context Boundary` may not back more than one `Owner` in the same run.
 - Different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement.
 - If the required independent context boundaries cannot be established, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
 - Single-owner execution in `Lite` is a fatal `Boundary Integrity` failure.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
 - `Advisor` may be added in `Lite` for direction, debate, or option generation without satisfying `Critic` or `Quality Gate`.
+- In a publishable `Lite` workflow, `Orchestrator` may not own `Implementer` or `Quality Gate`.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
 - In a publishable `Lite` workflow, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
 - If an external context is assigned to `Critic` but not `Quality Gate` and the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) during `S1`.
@@ -101,7 +105,9 @@ Notes:
 - If the work needs 5 or more distinct workflow roles to have active ownership, excluding a single `Runtime Verifier` added only for state-surface validation, escalate directly to `Full`.
 
 `Orchestrator` owns `S1` closure.
-`S1` closes only when the role owner table is written to the declared `Run Workspace` or to an explicitly declared equivalent location and satisfies the boundary rules above.
+`S1` closes only when the role owner table is written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, and satisfies the boundary rules above.
+Do not enter `S2` until publish intent, accountable owners, and required independent context boundaries are established.
+If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
 
 ## Step S2. Context Pack
 
@@ -168,6 +174,7 @@ Fact / Inference / Open Question
 ```
 
 Execution rules:
+- Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
 - Prefer tests, LSP, logs, browsers, deployment state, or other external feedback to establish facts.
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
 - Write intermediate results only to each role's own area.
@@ -275,8 +282,9 @@ Before publish, at minimum have:
 - [ ] declared `Run Workspace` before `S0`
 - [ ] `Task Brief`
 - [ ] role owner table
-- [ ] at least 2 distinct role owners
-- [ ] at least 2 distinct context boundaries backing those owners
+- [ ] publish intent or non-publish exploration recorded before `S2`
+- [ ] publishable runs have separate accountable owners for `Orchestrator`, `Implementer`, and `Quality Gate`
+- [ ] publishable runs have at least 3 distinct context boundaries backing those owners
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

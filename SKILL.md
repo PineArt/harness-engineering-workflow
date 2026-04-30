@@ -40,17 +40,20 @@ Treat `role`, `owner`, and `subagent` as different things:
 
 Default execution posture:
 - `Ultra Lite`: the single `Owner` stays single-owner unless boundaries are unclear
-- `Lite`: `Orchestrator` establishes at least 2 distinct independent context boundaries when role owners are assigned and before deep execution starts if the run is intended for final publish
-- `Full`: `Orchestrator` establishes at least 3 distinct independent context boundaries when role owners are assigned and before deep execution starts if the run is intended for final publish
+- `Lite`: `Orchestrator` establishes at least 3 distinct independent context boundaries for `Orchestrator`, `Implementer`, and `Quality Gate` when role owners are assigned if the run is intended for final publish
+- `Full`: `Orchestrator` establishes at least 3 distinct independent context boundaries when role owners are assigned and before `S2` if the run is intended for final publish
 - `Lite` or `Full`: `Orchestrator` applies the `External-Critic-Only Quality Gate Rule` from [references/checklists.md](references/checklists.md) if an external context covers `Critic` but not `Quality Gate` while the main context owns implementation
 - if a tier requires separated owners and the run cannot establish the required independent context boundaries, `Orchestrator` stops as a fatal `Boundary Integrity` failure and tells the user final-result quality is uncontrollable
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
 Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
+Before `S1` closes and before `S2` begins, `Orchestrator` must declare whether a `Lite` or `Full` run is intended for publish or is non-publish exploration.
+For publishable `Lite` and `Full`, `Orchestrator` must not own `Implementer` or `Quality Gate`.
 For publishable `Lite` and `Full`, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
+If publish intent, accountable owners, or required independent context boundaries cannot be established before `S2`, stop before task-specific downstream work starts, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration.
 `Orchestrator` records context boundaries in the role table and task graph whenever delegated work is used.
-`Orchestrator` must not defer missing publish-separation boundaries to final review; create or request the missing independent context before implementation proceeds.
+`Orchestrator` must not defer missing publish-separation boundaries to final review; create or request the missing independent context before `S2`.
 Agent identifiers may be recorded when available, but they are supporting evidence only and do not prove context independence.
 Before any concrete workflow action starts, it must have an accountable owner. Use the `Responsibility Matrix` in [references/artifact-registry.md](references/artifact-registry.md) whenever ownership is unclear.
 

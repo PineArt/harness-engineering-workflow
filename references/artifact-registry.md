@@ -118,10 +118,14 @@ Human Decision Points:
 ### Role Owner Table
 
 ```text
+Publish Intent: Publish | Non-publish exploration | N/A
+
 Role | Owner | Context Boundary | Shared? | Notes
 ```
 
 Field notes:
+- `Publish Intent` is a run-level field, not a per-role column; `Lite` and `Full` must record it before `S2`
+- `Owner` names the accountable person, agent, or execution owner for that role; context labels alone do not satisfy ownership
 - `Context Boundary` names the execution context used by the owner; this is the hard separation record for delegation
 - `Shared?` is `Yes` or `No`
 - within a run, one `Context Boundary` may map to only one `Owner`
