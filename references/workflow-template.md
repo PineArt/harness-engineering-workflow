@@ -57,7 +57,7 @@ Do not ask why the agent was "not trying hard enough" before you ask those quest
 
 ## 3. Required Environment
 
-Before starting, the workflow should at minimum have this skeleton:
+Before starting, the workflow must have or declare an equivalent skeleton:
 
 ```text
 repo/
@@ -85,6 +85,8 @@ Environment requirements:
 - error messages must be clear enough to support agent reflection and correction
 - high-frequency tools should prefer low latency to avoid idle feedback loops
 - keep system instructions and core prefixes as stable as possible to reduce context cache invalidation
+- every `Full` run has `Orchestrator` declare and validate a `Run Workspace` immediately after tier selection and before `S0`; default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`
+- if the default `exec-plans/` structure is unavailable, the `Execution Environment Spec` must declare the equivalent artifact location before execution starts
 
 AI-friendly tools to prioritize:
 - LSP or static analyzers
@@ -110,6 +112,7 @@ AI-friendly tools to prioritize:
 | `Human Decision Maker` | make directional decisions | pending decisions, residual risks | `Decision Log` | fall back to executing every detail personally |
 
 Artifact schemas and ownership are canonical in `artifact-registry.md`.
+Concrete action ownership defaults are canonical in the `Responsibility Matrix` in `artifact-registry.md`.
 
 For escalation thresholds, count distinct workflow roles that need active ownership in the current run, not task count or subtask count.
 `Runtime Verifier` may be added to `Lite` without immediate escalation when it is the only optional role beyond the default four and the workflow still centers on one primary implementation path.
@@ -141,6 +144,7 @@ Acceptance:
 - the goal is singular
 - completion can be judged
 - non-goals are explicit
+- `Task Brief` is written to the declared `Run Workspace` or an explicitly declared equivalent location before `S1` starts
 
 Fallback:
 - if the goal is ambiguous, do not start downstream agents
@@ -155,6 +159,7 @@ Inputs:
 
 Method:
 - define directory structure
+- formalize the already-declared `Run Workspace`, including active path, completed path, artifact index, step-closure gates, and exception paths
 - define file naming
 - define a unified output format
 - define status, version, and log fields
@@ -163,7 +168,7 @@ Method:
 - define `Role Owner Table`
 - mark whether the run is intended for final publish and whether required separation is mechanically satisfied
 - enforce tier-specific owner separation before downstream work starts
-- in publishable `Full`, apply the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) before downstream work starts
+- in publishable `Full`, `Orchestrator` applies the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) before downstream work starts
 
 Outputs:
 - `Execution Environment Spec`
@@ -171,6 +176,8 @@ Outputs:
 
 Acceptance:
 - all agents use the same skeleton
+- the `Run Workspace` was declared before `S0` and is formalized in `Execution Environment Spec`
+- `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
@@ -183,7 +190,9 @@ Acceptance:
 - in any publishable `Lite` or `Full` workflow, `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 
 Fallback:
-- if outputs cannot be merged cleanly, fix the environment before continuing
+- if outputs cannot be merged cleanly, `Orchestrator` fixes the environment before continuing
+- if the `Run Workspace` cannot be created or declared, `Orchestrator` stops before `S0` and fixes the environment
+- if a step-closure artifact is missing, incomplete, field-invalid, or written to an unvalidated equivalent location, `Orchestrator` returns to the failed step before the next step starts
 
 ### Step S2. Context Packaging
 
@@ -211,9 +220,10 @@ Acceptance:
 - key sources are traceable
 - core prefixes stay as stable as possible
 - new context is primarily appended rather than repeatedly rewritten
+- `Context Pack` is written before `S3` starts
 
 Fallback:
-- if overreach and hallucination rise, shrink context and increase constraints
+- if overreach and hallucination rise, `Orchestrator` shrinks context and increases constraints
 
 ### Step S3. Task Graph
 
@@ -236,7 +246,7 @@ Method:
 - assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Critic` or `Quality Gate`
 - mark context-overload risk points
 - predefine subagent split strategies for high-complexity work
-- for publishable delegated `Full` runs, verify the minimum required distinct independent context boundaries were established during `S1`; if not, create or request the missing independent boundary before deep execution starts
+- for publishable delegated `Full` runs, `Orchestrator` verifies the minimum required distinct independent context boundaries were established during `S1`; if not, `Orchestrator` creates or requests the missing independent boundary before deep execution starts
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
 
 Outputs:
@@ -249,9 +259,10 @@ Acceptance:
 - every delegated `Owner` / `Context Boundary` pair matches the `Role Owner Table`
 - dependencies are clear and there are no responsibility gaps
 - no very long chain is forced into one agent
+- `Task Graph` and active `Workflow Draft` are written before `S4` starts
 
 Fallback:
-- if two agents are doing the same thing, refactor the task tree
+- if two agents are doing the same thing, `Orchestrator` refactors the task tree
 
 ### Step S4. Parallel Execution
 
@@ -263,13 +274,18 @@ Inputs:
 - role-specific `Context Pack`
 - fixed output contract
 
+Execution entry assertion:
+- `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
+- `Task Brief`, `Execution Environment Spec`, `Run Workspace`, `Role Owner Table`, `Context Pack`, `Task Graph`, and `Workflow Draft` when active must already be written and field-valid in the declared workspace or an explicitly declared equivalent location.
+- Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
+
 Method:
 - run analysis, design, implementation, and risk scanning in parallel where appropriate
 - produce output in a unified format
 - write intermediate results only to each role's own area
 - use tool calls to obtain external factual feedback instead of text-only reasoning
 - require real state-surface validation for any change whose correctness depends on pre-existing state
-- split work to subagents when the primary agent's context pressure becomes too high
+- `Orchestrator` splits work to subagents when the primary agent's context pressure becomes too high
 
 Outputs:
 - the set of subtask artifacts
@@ -371,8 +387,8 @@ Inputs:
 Method:
 - apply the canonical gate rules from `checklists.md` strictly
 - produce a `Gate Decision` that satisfies the canonical verdict, evidence, and replay requirements
-- if `checklists.md` is temporarily unavailable, restore it from version control first; use the minimum rules in this section only when the workflow must continue, and realign with the canonical checklist before publish
-- if `artifact-registry.md` is temporarily unavailable, restore it from version control first; do not rewrite `Gate Decision` field names from memory before it is restored; if no prior valid gate artifact exists to reuse, do not continue through the gate
+- if `checklists.md` is temporarily unavailable, `Orchestrator` restores it from version control first; `Quality Gate` may use the minimum rules in this section only when the workflow must continue, and `Orchestrator` realigns with the canonical checklist before publish
+- if `artifact-registry.md` is temporarily unavailable, `Orchestrator` restores it from version control first; `Quality Gate` must not rewrite `Gate Decision` field names from memory before it is restored; if no prior valid gate artifact exists to reuse, `Quality Gate` must not continue through the gate
 - after gate review, `Orchestrator` must append the gate outcome to `Decision Log` before rework or publish
 
 Outputs:
@@ -398,9 +414,9 @@ Inputs:
 - the approved final draft
 
 Method:
-- verify that the latest `Gate Decision` verdict is `Pass` before publish starts
-- freeze the version
-- record decisions
+- `Orchestrator` verifies that the latest `Gate Decision` verdict is `Pass` before publish starts
+- `Human Decision Maker` freezes the version when active; otherwise `Orchestrator` records the accepted version freeze
+- `Orchestrator` records decisions unless the decision belongs to `Human Decision Maker`
 - summarize rework patterns
 - extract reusable rules
 

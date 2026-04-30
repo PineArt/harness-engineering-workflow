@@ -39,30 +39,42 @@ Treat `role`, `owner`, and `subagent` as different things:
 - `Subagent`: the concrete delegated execution slot, but for this skill delegation counts only when execution crosses an independent context boundary
 
 Default execution posture:
-- `Ultra Lite`: stay single-owner unless boundaries are unclear
-- `Lite`: if the run is intended for final publish, establish at least 2 distinct independent context boundaries when role owners are assigned and before deep execution starts
-- `Full`: if the run is intended for final publish, establish at least 3 distinct independent context boundaries when role owners are assigned and before deep execution starts
-- `Lite` or `Full`: if an external context covers `Critic` but not `Quality Gate` while the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` from [references/checklists.md](references/checklists.md)
-- if a tier requires separated owners and the run cannot establish the required independent context boundaries, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
+- `Ultra Lite`: the single `Owner` stays single-owner unless boundaries are unclear
+- `Lite`: `Orchestrator` establishes at least 2 distinct independent context boundaries when role owners are assigned and before deep execution starts if the run is intended for final publish
+- `Full`: `Orchestrator` establishes at least 3 distinct independent context boundaries when role owners are assigned and before deep execution starts if the run is intended for final publish
+- `Lite` or `Full`: `Orchestrator` applies the `External-Critic-Only Quality Gate Rule` from [references/checklists.md](references/checklists.md) if an external context covers `Critic` but not `Quality Gate` while the main context owns implementation
+- if a tier requires separated owners and the run cannot establish the required independent context boundaries, `Orchestrator` stops as a fatal `Boundary Integrity` failure and tells the user final-result quality is uncontrollable
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
 Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
 For publishable `Lite` and `Full`, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
-Record context boundaries in the role table and task graph whenever delegated work is used.
-Do not defer missing publish-separation boundaries to final review; create or request the missing independent context before implementation proceeds.
+`Orchestrator` records context boundaries in the role table and task graph whenever delegated work is used.
+`Orchestrator` must not defer missing publish-separation boundaries to final review; create or request the missing independent context before implementation proceeds.
 Agent identifiers may be recorded when available, but they are supporting evidence only and do not prove context independence.
+Before any concrete workflow action starts, it must have an accountable owner. Use the `Responsibility Matrix` in [references/artifact-registry.md](references/artifact-registry.md) whenever ownership is unclear.
+
+Run workspace posture:
+- `Ultra Lite`: the single `Owner` completes a `Preflight Judgment` before changing files or executing task-specific actions. It must state whether the task is still Ultra Lite, why, the concrete validation path, whether that path is executable now, the validation-failure action, and whether to escalate before execution. The judgment may live inline in the current response or in a repo-backed note. Escalate before execution if the work needs durable process records, multiple owners, a formal gate, or more than one validation path.
+- `Lite`: `Orchestrator` establishes, declares, and validates a `Run Workspace` immediately after tier selection and before `S0`. Default path: `exec-plans/active/YYYY-MM-DD-<slug>/`.
+- `Full`: `Orchestrator` establishes, declares, and validates a `Run Workspace` immediately after tier selection and before `S0`; then formalizes it during `S1` as part of `Execution Environment Spec`. Default path: `exec-plans/active/YYYY-MM-DD-<slug>/`; `Orchestrator` moves or copies completed run records to `exec-plans/completed/YYYY-MM-DD-<slug>/` unless a publish owner is explicitly assigned.
+- `Lite` and `Full`: `Orchestrator` closes each step from `S0` through `S3` only after the required artifact for that step has been written to the run workspace, or to an explicitly declared equivalent location, before the next step starts.
+- `S4` is only the final execution-entry assertion that earlier step-closure gates succeeded; it is not the first place missing artifacts should be discovered.
+- `Orchestrator` owns the artifact index and any exception to the default path. Any exception must be declared in `Task Graph` `Writable Area`; in `Full`, also declare it in `Execution Environment Spec` `Artifact Locations`.
+- `Orchestrator` validates any declared equivalent location as writable and accessible before the step closes. If validation fails, the step does not close.
+- Step-closure gates are enforced by `Orchestrator` before the next step starts. If a required artifact is missing, incomplete, or field-invalid, `Orchestrator` stops the workflow and returns to the failed step.
 
 ## Operating Rules
 
 - Human steers; agents execute.
-- Fix environment gaps before blaming the model.
+- `Orchestrator` owns environment-gap repair in `Lite` and `Full`; the single `Owner` owns it in `Ultra Lite` or escalates before execution.
 - Knowledge not encoded into the repo or task artifacts should be treated as unavailable.
 - Keep `AGENTS.md` short and navigational.
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
-- Any change that depends on pre-existing state must be validated against a real pre-existing state surface.
-- If a single agent is nearing context overload, split work into subagents or smaller owned tasks.
-- When delegation is required, ensure the work crosses independent context boundaries; do not simulate separation with different role labels inside one context.
+- Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
+- `Orchestrator` assigns `Runtime Verifier` or records why no verifier is required for any change that depends on pre-existing state.
+- If a single agent is nearing context overload, `Orchestrator` splits work into subagents or smaller owned tasks.
+- When delegation is required, `Orchestrator` ensures the work crosses independent context boundaries; do not simulate separation with different role labels inside one context.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
 ## What To Read
@@ -73,16 +85,19 @@ Agent identifiers may be recorded when available, but they are supporting eviden
 - For role prompts, read [references/agent-prompts.md](references/agent-prompts.md).
 - For the only canonical gate rubric, read [references/checklists.md](references/checklists.md).
 - For canonical artifact fields and owners, read [references/artifact-registry.md](references/artifact-registry.md).
+- For concrete action ownership, read the `Responsibility Matrix` in [references/artifact-registry.md](references/artifact-registry.md).
 
 ## Quick Start
 
 1. Use `Fast Tier Check` to choose `Ultra Lite`, `Lite`, or `Full`.
-2. For `Lite` or `Full`, decide early whether the run can establish the required independent context boundaries; if not, stop and redesign instead of downgrading the same run to paper-only separation.
-3. Open only the file for that tier first.
-4. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
-5. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name or artifact owner is unclear.
-6. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
-7. Open [references/checklists.md](references/checklists.md) at gate time.
+2. For `Ultra Lite`, write the goal/scope block and complete `Preflight Judgment` before editing or executing.
+3. For `Lite` or `Full`, `Orchestrator` decides early whether the run can establish the required independent context boundaries; if not, `Orchestrator` stops and redesigns instead of downgrading the same run to paper-only separation.
+4. For `Lite` or `Full`, `Orchestrator` declares the `Run Workspace` before `S0`; use `exec-plans/active/YYYY-MM-DD-<slug>/` unless the run explicitly declares another writable area.
+5. Open only the file for that tier first.
+6. If you are in `Lite`, fill [references/workflow-template-lite.md](references/workflow-template-lite.md) first.
+7. Open [references/artifact-registry.md](references/artifact-registry.md) before writing `Risk Register`, `Integration Ledger`, or `Decision Log`, and at any time a field name, artifact owner, or action owner is unclear.
+8. Only open [references/agent-prompts.md](references/agent-prompts.md) when you need role-specific prompts.
+9. Open [references/checklists.md](references/checklists.md) at gate time.
 
 ## Escalation Heuristics
 
@@ -134,15 +149,18 @@ Otherwise start with `Lite`.
 
 Ultra Lite:
 - one short goal/scope block
+- one `Preflight Judgment`
 - one owner
 - one validation path
 - one validation-failure action
 
 Lite:
+- one declared `Run Workspace` before `S0`
 - one short `Task Brief`
 - one role owner table
 - one `Context Pack`
 - one `Task Graph`
+- step-closure records for `S0`, `S1`, `S2`, and `S3` before the next step starts
 - one `Execution Output Record`
 - one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
 - one `Risk Register`
@@ -154,6 +172,7 @@ Lite:
 Full:
 - everything in Lite
 - `Execution Environment Spec`
+- one declared `Run Workspace` before `S0`, formalized during `S1`
 - full workflow draft
 - `Published Version`
 - `Next Iteration Notes`

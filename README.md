@@ -97,8 +97,12 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 ## Tier Guardrails
 
 - `Ultra Lite` is for low-risk, tightly bounded work where 1 owner and 1 strong validation path are enough for final publish.
+- `Ultra Lite` starts with a filled goal/scope block and `Preflight Judgment` before task-specific execution.
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
+- `Lite` and `Full` runs must declare a `Run Workspace` before `S0`; default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`.
 - `Lite` final publish requires at least 2 distinct owners backed by at least 2 independent context boundaries.
+- `Full` runs must formalize that `Run Workspace` during `S1` in `Execution Environment Spec`.
+- For `Lite` and `Full`, `S0` through `S3` close only after their required artifacts are written before the next step starts.
 - For this skill, delegation counts only when execution crosses an independent context boundary. Role labels, tool calls, or spawns that remain within the same context do not satisfy publish separation.
 - In publishable `Lite`, `Implementer` may not also own `Quality Gate`.
 - `Full` final publish requires at least 3 distinct owners backed by at least 3 independent context boundaries.

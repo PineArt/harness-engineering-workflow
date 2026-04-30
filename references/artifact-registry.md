@@ -2,7 +2,7 @@
 
 This file is the canonical source for minimum artifact schemas.
 Other files may show short fill-in blocks, but field names and ownership should stay aligned with this registry.
-If this file is unavailable during execution, restore it from version control before redefining artifact fields elsewhere.
+If this file is unavailable during execution, `Orchestrator` restores it from version control before any owner redefines artifact fields elsewhere.
 
 ## Artifact Index
 
@@ -25,6 +25,83 @@ If this file is unavailable during execution, restore it from version control be
 | `Gate Decision` | `Quality Gate` | `S7` | `Lite`, `Full` |
 | `Published Version` | `Template Editor` or publish owner | `S8` | `Full` |
 | `Next Iteration Notes` | `Orchestrator` | `S8` | `Full` |
+
+## Run Workspace Contract
+
+`Run Workspace` is the durable place where process artifacts for one run are written.
+
+Owner:
+`Orchestrator` owns `Run Workspace` declaration, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement for `Lite` and `Full`.
+In `Ultra Lite`, the single `Owner` owns the `Preflight Judgment`.
+
+Default path:
+
+```text
+exec-plans/active/YYYY-MM-DD-<slug>/
+```
+
+Default completion path:
+
+```text
+exec-plans/completed/YYYY-MM-DD-<slug>/
+```
+
+Minimum fields:
+
+```text
+Run ID:
+Tier:
+Created Before Step:
+Active Path:
+Completed Path:
+Artifact Index:
+Step Closure Gates:
+Exception Paths:
+```
+
+Rules:
+- `Ultra Lite` does not require a durable `Run Workspace` by default, but the short goal/scope block and `Preflight Judgment` must exist before editing or execution starts.
+- `Ultra Lite` `Preflight Judgment` must state whether the task is still Ultra Lite, why, the concrete validation path, whether that path is executable now, the validation-failure action, and whether to escalate before execution.
+- `Lite` and `Full` runs must declare a `Run Workspace` immediately after tier selection and before `S0`.
+- `Full` runs must also formalize the `Run Workspace` during `S1` in `Execution Environment Spec`.
+- every required artifact for `S0`, `S1`, `S2`, and `S3` must be written and field-valid before the workflow enters the next step.
+- `S4` may assert that the earlier step-closure gates were satisfied, but it must not be the first point where missing pre-execution artifacts are discovered.
+- exception paths must be declared in `Task Graph` `Writable Area`; in `Full`, also declare them in `Execution Environment Spec` `Artifact Locations`.
+
+`Field-valid` means:
+- all required fields from the relevant minimum schema are present
+- required fields contain task-specific values rather than placeholders
+- path fields are syntactically valid for the current workspace
+- owner, artifact, and writable-area references agree with the current `Role Owner Table` and `Task Graph`
+
+If field validation fails, the current step does not close.
+
+## Responsibility Matrix
+
+No concrete workflow action may remain ownerless. If a rule, fallback, validation, replay, publish action, or environment repair does not name a specific owner elsewhere, `Orchestrator` owns assigning one before the action starts.
+
+| Action Area | Default Owner | Required Record |
+|---|---|---|
+| Fast Tier Check and initial tier choice | acting `Orchestrator`; in `Ultra Lite`, the single `Owner` until escalation | `Preflight Judgment` for `Ultra Lite`; `Decision Log` for `Lite` / `Full` |
+| `Ultra Lite` goal/scope, preflight, execution, validation, retry, or escalation | single `Owner` | goal/scope block and `Preflight Judgment` |
+| `Run Workspace`, artifact index, equivalent-location approval, and step-closure gates | `Orchestrator` | `Run Workspace` and `Decision Log` when a closure fails |
+| Role assignment, owner separation, and independent context-boundary requests | `Orchestrator` | `Role Owner Table` and `Task Graph` |
+| Applying `External-Critic-Only Quality Gate Rule` | `Orchestrator` | `Role Owner Table` notes and `Decision Log` |
+| Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
+| Task execution and execution artifacts | assigned task owner | `Execution Output Record` |
+| Real state-surface validation | `Runtime Verifier`; if absent, `Orchestrator` must assign one or record why not required | `Runtime Evidence Record` or `Decision Log` |
+| Risk scan and revision requests | `Critic` | `Risk Register` |
+| Advisory debate or option generation | `Advisor` | `Advisory Note` |
+| Integration and conflict resolution | `Orchestrator` | `Integration Ledger` and `Decision Log` |
+| Gate verdict, return step, rework owner, and re-gate owner fields | `Quality Gate` | `Gate Decision` |
+| Gate-requested corrective work | `Rework Owner` named in `Gate Decision` | refreshed artifact from the return step |
+| Re-gate after corrective work | `Re-gate Owner` named in `Gate Decision` | fresh `Gate Decision` |
+| Replay coordination after `Fail` or `Conditional Pass` | `Orchestrator` | `Decision Log` and refreshed downstream artifacts |
+| Missing `artifact-registry.md` or `checklists.md` restoration | `Orchestrator`; `Quality Gate` blocks gate progress until restored | `Decision Log` |
+| Publish readiness verification | `Orchestrator` unless a publish owner is explicitly assigned | publish checklist and `Decision Log` |
+| `Published Version` production | `Template Editor` or explicit publish owner | `Published Version` |
+| Final version freeze or human arbitration | `Human Decision Maker` when active; otherwise `Orchestrator` records the accepted decision | `Decision Log` |
+| Moving or copying durable run records from `exec-plans/active/` to `exec-plans/completed/` | `Orchestrator` unless publish owner is assigned | `Decision Log` and preserved artifact index |
 
 ## Minimum Schemas
 

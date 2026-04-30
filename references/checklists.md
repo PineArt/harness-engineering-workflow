@@ -11,6 +11,12 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] key knowledge is in repo or task artifacts
 - [ ] `AGENTS.md` is short and navigational
 - [ ] tools exist for diagnostics, testing, or runtime feedback
+- [ ] `Ultra Lite` has a filled goal/scope block before execution, or the run has escalated
+- [ ] `Ultra Lite` single `Owner` completed `Preflight Judgment` before execution, including validation path, executable-now status, validation-failure action, and escalation decision
+- [ ] `Lite` and `Full` `Orchestrator` declared and validated a `Run Workspace` before `S0`
+- [ ] `Lite` and `Full` `Orchestrator` enforced `S0`, `S1`, `S2`, and `S3` step-closure artifacts before the next step started
+- [ ] any equivalent artifact location has an owner, is writable, accessible, and explicitly declared
+- [ ] every concrete workflow action has an owner, using the `Responsibility Matrix` in `artifact-registry.md` when ownership is not otherwise explicit
 - [ ] each role has an explicit owner
 - [ ] any `Lite` workflow intended for publish uses at least 2 distinct owners
 - [ ] any `Full` workflow intended for publish uses at least 3 distinct owners
@@ -26,6 +32,7 @@ Other files should reference these gates by name instead of redefining them.
 - `Pass`: all blocking gates pass, and any remaining gaps are minor documentation cleanup.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
+- Use `Fail` for any `Lite` or `Full` run if the required `Run Workspace` was not declared before `S0`, or if `S0` through `S3` step-closure artifacts were created only after the next step or task-specific execution had already started.
 - For `Lite` final publish, use `Fail` if the workflow has only 1 distinct owner, if `Implementer` also owns `Quality Gate`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For `Full` final publish, use `Fail` if the workflow has fewer than 3 distinct owners, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if `Quality Gate` also owns `Orchestrator`, if the required independent context boundaries cannot be established, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For any publishable `Lite` or `Full` workflow, use `Fail` if `Quality Gate` is not explicitly assigned or if it shares the implementation context boundary.
@@ -34,11 +41,11 @@ Other files should reference these gates by name instead of redefining them.
 ### External-Critic-Only Quality Gate Rule
 
 When an external context such as Opus is assigned to `Critic` but not `Quality Gate` while the main context owns implementation:
-- `Lite`: assign `Quality Gate` to a separate independent context boundary.
-- `Full`: assign `Quality Gate` to a third independent context boundary.
-- default to a local independent subagent when no separate gate owner is already available.
+- `Lite`: `Orchestrator` assigns `Quality Gate` to a separate independent context boundary.
+- `Full`: `Orchestrator` assigns `Quality Gate` to a third independent context boundary.
+- `Orchestrator` defaults to a local independent subagent when no separate gate owner is already available.
 
-Missing this rule before implementation proceeds is a fatal `Boundary Integrity` failure.
+Missing this rule before implementation proceeds is a fatal `Boundary Integrity` failure owned by `Orchestrator`.
 
 ### Advisor Constraints
 
@@ -80,12 +87,12 @@ This file is canonical for gate verdict rules and replay semantics.
 
 ### Replay Rules
 
-- after `Fail`, rerun from `Return Step` through every downstream required step until `S7`
-- after `Conditional Pass`, complete the remediation owned by `Rework Owner`, then rerun from `Return Step` through every downstream required step until `S7`
-- any artifact produced by the `Return Step` or a later step must be refreshed before re-gate
+- after `Fail`, `Orchestrator` coordinates rerun from `Return Step` through every downstream required step until `S7`
+- after `Conditional Pass`, `Rework Owner` completes the remediation, then `Orchestrator` coordinates rerun from `Return Step` through every downstream required step until `S7`
+- `Orchestrator` ensures any artifact produced by the `Return Step` or a later step is refreshed before re-gate
 - a `Conditional Pass` remains open until a fresh `Pass` is recorded by a later `Gate Decision`
 - `S8` may begin only when the latest `Gate Decision` verdict is `Pass`
-- no workflow may continue autonomous gate-triggered rework for the same unresolved issue beyond 2 cycles; after the second cycle, require human arbitration or tier escalation before further execution
+- `Orchestrator` must not continue autonomous gate-triggered rework for the same unresolved issue beyond 2 cycles; after the second cycle, `Orchestrator` requires human arbitration or tier escalation before further execution
 
 ### Source Fidelity
 
@@ -96,6 +103,10 @@ This file is canonical for gate verdict rules and replay semantics.
 ### Boundary Integrity
 
 - [ ] roles are not overlapping excessively
+- [ ] `Lite` and `Full` declared a `Run Workspace` before `S0`
+- [ ] `S0`, `S1`, `S2`, and `S3` step-closure gates succeeded before the next step began
+- [ ] `Orchestrator` enforced step-closure gates and returned to the failed step on missing or field-invalid artifacts
+- [ ] every fallback, replay, restore, publish, escalation, and context-split action has an accountable owner
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow
 - [ ] `Quality Gate` is explicitly assigned for any publishable `Lite` or `Full` workflow
 - [ ] `Quality Gate` uses an independent context boundary separate from the implementation context for any publishable `Lite` or `Full` workflow
@@ -116,10 +127,15 @@ This file is canonical for gate verdict rules and replay semantics.
 
 ### Execution Completeness
 
+- [ ] the run has an artifact location contract appropriate to its tier
+- [ ] `Ultra Lite` has the short goal/scope block and complete `Preflight Judgment` before execution, or has escalated to `Lite`
+- [ ] `Lite` has `Run Workspace` before `S0`, `Task Brief` and initial `Decision Log` before `S1`, role owner table before `S2`, `Context Pack` before `S3`, and `Task Graph` before `S4`
+- [ ] `Full` has `Run Workspace` before `S0`, `Task Brief` before `S1`, `Execution Environment Spec` and role owner table before `S2`, `Context Pack` before `S3`, and `Task Graph` plus active `Workflow Draft` before `S4`
 - [ ] each step has inputs
 - [ ] each step has outputs
 - [ ] each step has acceptance criteria
 - [ ] each step has fallback or escalation
+- [ ] each fallback or escalation names an owner or resolves to the `Responsibility Matrix`
 - [ ] `Risk Register` exists before gate review
 - [ ] an integration ledger exists with `agent / claim / artifact name / owner / evidence source / decision / next step or fallback`
 
@@ -136,6 +152,7 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] fixed skeleton and task-specific parameters are separated
 - [ ] prompts are reusable
 - [ ] artifact names and locations are consistent
+- [ ] completed durable runs can be moved or copied from `exec-plans/active/` to `exec-plans/completed/` without losing the artifact index
 
 ### Entropy Control
 
@@ -153,6 +170,8 @@ These are secondary triggers; required publish-separation context splits should 
 - [ ] more than 2 failed revisions on the same step
 - [ ] more than 4 upstream artifacts required to continue one task
 - [ ] the active agent is re-reading long history instead of operating on a stable summary
+
+`Orchestrator` owns detecting these triggers and assigning the summary or split owner.
 
 ## Anti-Patterns
 

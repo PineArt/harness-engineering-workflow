@@ -18,6 +18,8 @@ Do not use this for:
 
 ## 1. Fill This In
 
+Write this block before editing files, running deployment actions, or taking other task-specific execution steps.
+
 ```text
 Goal:
 
@@ -32,15 +34,37 @@ Validation:
 Done When:
 ```
 
-## 2. Minimal Flow
+## 2. Preflight Judgment
+
+Complete this judgment before editing files, running deployment actions, or taking other task-specific execution steps.
+
+```text
+Still Ultra Lite: <Yes/No>
+Reason:
+Validation Path:
+Validation Path Is Executable Now: <Yes/No>
+Validation-Failure Action:
+Escalate Before Execution: <Yes/No>
+```
+
+Rules:
+- the single `Owner` owns this judgment and must complete it before task-specific execution
+- `Still Ultra Lite` may be `Yes` only when one owner, one validation path, and no formal gate are enough.
+- `Validation Path` must be concrete enough to run or observe, such as a command, page check, API response, log check, or file inspection.
+- `Validation-Failure Action` must say whether the owner retries once, escalates to `Lite`, or stops for human arbitration.
+- if `Validation Path Is Executable Now` is `No`, the single `Owner` either fixes the environment before execution or sets `Escalate Before Execution` to `Yes`.
+- if `Escalate Before Execution` is `Yes`, the single `Owner` stops using Ultra Lite and converts the filled block into the Lite artifacts in Section 6 before task-specific execution starts.
+
+## 3. Minimal Flow
 
 1. Write `Goal` and `Done When` clearly.
 2. Assign a single `Owner`.
-3. Execute the change.
-4. Validate with the most direct external feedback available.
-5. Stop once `Done When` is satisfied.
+3. Complete the preflight judgment in Section 2.
+4. Execute the change.
+5. Validate with the most direct external feedback available.
+6. Stop once `Done When` is satisfied.
 
-## 3. Default Rules
+## 4. Default Rules
 
 - Do not split into multiple agents by default.
 - Do not create a `Risk Register` by default.
@@ -54,8 +78,9 @@ Done When:
 - Add an `Orchestrator` only when the goal, scope, or acceptance criteria are still unclear.
 - If you need a role prompt, start with `Implementer`; add `Orchestrator` only when boundaries remain unclear.
 - A final publish from `Ultra Lite` is acceptable only when the task remains low-risk, tightly bounded, and closed by one strong validation path.
+- Do not start execution if the preflight judgment shows a need for durable process records, multiple owners, a formal gate, or more than one validation path; escalate to `Lite` first.
 
-## 4. Validation Options
+## 5. Validation Options
 
 Pick the cheapest and most direct option first:
 - unit tests
@@ -69,13 +94,13 @@ Rules:
 - If correctness depends on pre-existing state, validate against the real existing surface that matters; a freshly seeded substitute is not automatically equivalent.
 - If validation depends on more than one independent signal to be credible, escalate to `workflow-template-lite.md`.
 
-## 5. If Validation Fails
+## 6. If Validation Fails
 
 Handle it in this order:
 
 1. If the scope is unchanged, the owner is unchanged, and the same validation path can still close the loop, let the current `Owner` fix it and retry once.
 2. If the second attempt still fails, or the work starts to require a second owner, a second validation source, or more explicit risk tracking, escalate immediately to `workflow-template-lite.md`.
-3. When escalating to `Lite`, convert the Ultra Lite fields into the canonical Lite artifacts below instead of copying labels forward verbatim.
+3. When escalating to `Lite`, the single `Owner` or newly assigned `Orchestrator` converts the Ultra Lite fields into the canonical Lite artifacts below instead of copying labels forward verbatim.
 
 `Task Brief` seed:
 
@@ -108,7 +133,7 @@ Critic | <Assign> | <Main or delegated context> | <Yes/No> | Required in Lite
 Quality Gate | <Assign> | <Main or delegated context> | <Yes/No> | Required in Lite
 ```
 
-## 6. Escalate To Lite If
+## 7. Escalate To Lite If
 
 Escalate to `workflow-template-lite.md` if any of the following is true:
 - a second owner is needed
@@ -123,7 +148,7 @@ Escalate to `workflow-template-lite.md` if any of the following is true:
 - the task affects correctness-critical behavior such as integrity, durability, recovery, ordering, security, or externally visible contract semantics
 - the task would need role separation to make the final publish decision credible
 
-## 7. Example
+## 8. Example
 
 ```text
 Goal:
@@ -143,4 +168,22 @@ Open the page locally, confirm the default date is correct, and run the related 
 
 Done When:
 The page shows the correct default date, the tests pass, and there are no console errors.
+
+Still Ultra Lite:
+Yes
+
+Reason:
+One frontend initialization change, one owner, one direct page/test validation path.
+
+Validation Path:
+Open the page locally and run the related frontend tests.
+
+Validation Path Is Executable Now:
+Yes
+
+Validation-Failure Action:
+Owner retries once if scope is unchanged; escalate to Lite if the retry fails or another validation source is needed.
+
+Escalate Before Execution:
+No
 ```

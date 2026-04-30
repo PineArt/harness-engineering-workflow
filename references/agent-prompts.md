@@ -24,6 +24,9 @@ If tools, structure, constraints, knowledge, or feedback loops are missing, call
 If sources are insufficient, do not fill the gap with a definite conclusion.
 Prefer tools and external feedback to establish factual anchors. Do not rely only on text-only reasoning.
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
+For Ultra Lite, the single Owner writes the goal/scope block and completes `Preflight Judgment` before task-specific execution; escalate before execution if durable process records, multiple owners, a formal gate, or multiple validation signals are needed.
+For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
+Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the Responsibility Matrix in artifact-registry.md or ask Orchestrator to assign one.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before deep execution starts.
 For publishable Lite or Full, if an external context covers Critic but not Quality Gate while the main context owns implementation, apply the External-Critic-Only Quality Gate Rule from checklists.md.
@@ -43,12 +46,14 @@ Tasks:
 1. Compress the user goal into a single Task Brief.
 2. Define Non-goals, Constraints, and Success Criteria.
 3. Design the Task Graph, including parallel blocks, serial blocks, and human decision points.
-4. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
-5. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
-6. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
-7. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
-8. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
-9. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
+4. Own and declare the `Run Workspace` for Lite and Full before S0, including active path, completed path, artifact index, step-closure gates, and exception paths.
+5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
+6. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
+7. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
+8. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
+9. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
+10. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+11. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
@@ -207,6 +212,8 @@ Also check:
 - whether the Required Evidence Fields are complete
 - whether any Context Overflow Triggers have fired and been handled correctly
 - whether the `Gate Decision` fields match `artifact-registry.md`
+- whether the tier-appropriate `Run Workspace` was declared before S0
+- whether S0 through S3 step-closure artifacts were written and field-valid before the next step started
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 
@@ -256,38 +263,42 @@ Do not return to executing every implementation detail personally.
 
 ```text
 Ultra Lite:
-1. Implementer executes and validates
-2. If boundaries are unclear, add Orchestrator to clarify Goal / Scope / Done When
+1. Implementer writes the goal/scope block and `Preflight Judgment`
+2. If durable records, multiple owners, a formal gate, or multiple validation signals are needed, escalate before execution
+3. Implementer executes and validates
+4. If boundaries are unclear, add Orchestrator to clarify Goal / Scope / Done When
 
 Lite:
-1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed
-3. S2 Orchestrator produces Context Pack
-4. S3 Orchestrator writes Task Graph and binds at least 2 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
-5. S4 Implementer executes and produces Execution Output Record
-6. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
-7. S5 Critic produces Risk Register
-8. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
-9. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
-10. S7 Orchestrator appends the gate outcome to `Decision Log`
-11. S8 Orchestrator verifies required artifacts before publish
+1. Run Intake declares `Run Workspace` before S0
+2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
+3. S1 Orchestrator fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; do not enter S2 until the table is written
+4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
+5. S3 Orchestrator writes Task Graph and binds at least 2 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
+6. S4 Implementer executes and produces Execution Output Record
+7. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
+8. S5 Critic produces Risk Register
+9. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
+10. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
+11. S7 Orchestrator appends the gate outcome to `Decision Log`
+12. S8 Orchestrator verifies required artifacts before publish
 
 Full:
-1. S0 Orchestrator produces Task Brief and opens `Decision Log`
-2. S1 Orchestrator produces Execution Environment Spec, Role Owner Table, delegation posture, and the required three independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed
-3. S2 Orchestrator produces Context Pack
-4. S2 Source Analyst produces Claims List / Evidence Map
-5. S2 Principle Mapper produces Principle Set
-6. S3 Orchestrator produces Task Graph and binds at least 3 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
-7. S3 Workflow Designer consumes Task Graph and produces Workflow Draft
-8. S4 Implementer executes and produces Execution Output Record
-9. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
-10. S5 Critic produces Risk Register
-11. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
-12. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
-13. S7 Orchestrator appends the gate outcome to `Decision Log`
-14. S8 Template Editor produces the final template
-15. S8 Human Decision Maker freezes the version and appends `Decision Log`
+1. Run Intake declares `Run Workspace` before S0
+2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
+3. S1 Orchestrator produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, delegation posture, and the required three independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; do not enter S2 until S1 artifacts are written
+4. S2 Orchestrator produces Context Pack
+5. S2 Source Analyst produces Claims List / Evidence Map
+6. S2 Principle Mapper produces Principle Set; do not enter S3 until required S2 artifacts are written
+7. S3 Orchestrator produces Task Graph and binds at least 3 distinct independent context boundaries across the required separated owners; otherwise stop with a fatal `Boundary Integrity` failure
+8. S3 Workflow Designer consumes Task Graph and produces Workflow Draft; do not enter S4 until required S3 artifacts are written
+9. S4 Implementer executes and produces Execution Output Record
+10. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
+11. S5 Critic produces Risk Register
+12. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
+13. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
+14. S7 Orchestrator appends the gate outcome to `Decision Log`
+15. S8 Template Editor produces the final template
+16. S8 Human Decision Maker freezes the version and appends `Decision Log`
 
 Advisor:
 - optional at S1, S3, S5, or another assigned decision point
