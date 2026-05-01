@@ -37,8 +37,10 @@ Other files should reference these gates by name instead of redefining them.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - Use `Fail` for any `Lite` or `Full` run if the required `Run Workspace` was not declared before `S0`, or if `S0` through `S3` step-closure artifacts were created only after the next step or task-specific execution had already started.
+- Use `Fail` for any publishable `Lite` or `Full` run that imports or continues from non-publish exploration if `S0` did not record the imported material as evidence or context only, or if `S0` through `S3` were not re-closed under current `Publish` intent before task-specific execution.
 - Use `Fail` for any `Lite` or `Full` run if the `Run-Specific Responsibility Matrix` was not written during `S1` before `S2`, or if phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, or submit ownership cannot be resolved from that matrix or the canonical defaults.
 - Use `Fail` for any publishable `Lite` or `Full` run whose S1 boundary status is conditional, deferred, provisional, or depends on a later gate before it can become true.
+- Use `Fail` for any publishable `Lite` or `Full` run that inherits `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` records from non-publish exploration instead of establishing them in the current run.
 - For `Lite` final publish, use `Fail` if publish intent was not declared before `S2`, if the workflow does not assign separate accountable owners to `Orchestrator`, `Implementer`, and `Quality Gate`, if the required independent context boundaries cannot be established before `S2`, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For `Full` final publish, use `Fail` if publish intent was not declared before `S2`, if the workflow has fewer than 3 distinct owners, if `Orchestrator` owns `Implementer` or `Quality Gate`, if `Implementer` shares an owner with `Critic` or `Quality Gate`, if the required independent context boundaries cannot be established before `S2`, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
 - For any publishable `Lite` or `Full` workflow, use `Fail` if `Quality Gate` is not explicitly assigned or if it shares the implementation context boundary.
@@ -117,6 +119,9 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Run-Specific Responsibility Matrix` was written during `S1`, before `S2`, and resolves phase-critical action owners
 - [ ] every fallback, replay, restore, publish, escalation, and context-split action has an accountable owner
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow
+- [ ] if a publishable run imports or continues from non-publish exploration, `S0` records that material as evidence or context only
+- [ ] if a publishable run imports or continues from non-publish exploration, `S0`, `S1`, `S2`, and `S3` were re-closed under current `Publish` intent before task-specific execution
+- [ ] no `Boundary Status`, `Gate Decision`, publish-readiness claim, `Context Pack`, or `Task Graph` record from non-publish exploration is inherited as current-run closure evidence
 - [ ] publish intent or non-publish exploration was recorded before `S2` for any `Lite` or `Full` workflow
 - [ ] publishable `Lite` and `Full` boundary status is `Satisfied` before `S2`, not `Conditional` or deferred to final gate
 - [ ] `Quality Gate` is explicitly assigned for any publishable `Lite` or `Full` workflow

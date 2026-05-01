@@ -51,6 +51,7 @@ Rules:
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, and exception-path approval
 - if the workspace cannot be created or declared, `Orchestrator` stops before `S0` and fixes the environment
 - `S0` closes only when `Task Brief`, `Run Workspace`, and the initial `Decision Log` entry are written and field-valid
+- if the run imports or continues from prior non-publish exploration, `S0` closure must record the imported material as evidence or context only, and the `Task Brief` must state the current run's publish goal and scope independently
 - `Orchestrator` enforces step-closure gates and must return to the failed step if an artifact is missing, incomplete, field-invalid, or written to an unvalidated equivalent location
 - do not defer workspace declaration to `S4`, `S7`, or `S8`
 
@@ -90,6 +91,7 @@ Quality Gate |  |  |  |
 Notes:
 - `Role`, `Owner`, and `Context Boundary` are not interchangeable.
 - For publishable `Lite`, `Boundary Status` may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; S1 either satisfies the boundary before S2 or stops.
+- A publishable `Lite` run that imports prior non-publish exploration must enter `S1` with no inherited `Boundary Status`, `Gate Decision`, or publish-readiness claim; archive or cite those prior records only as evidence, then record the current run's status independently.
 - Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are not separate owners by themselves; `Main Codex` using any execution surface is still `Main Codex` unless a different accountable executor is assigned.
 - A `Lite` workflow must declare publish intent or record itself as non-publish exploration during `S1`, before `S2`.
 - A `Lite` workflow intended to pass final gate and publish must assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners backed by at least 3 distinct independent context boundaries during `S1`, before `S2`.
@@ -136,6 +138,7 @@ Notes:
 
 `Orchestrator` owns `S1` closure.
 `S1` closes only when the role owner table and run-specific responsibility matrix are written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, resolves phase-critical S6/S7/S8 ownership, and satisfies the boundary rules above.
+For a publishable run that imports prior non-publish exploration, `S1` also closes only after `Orchestrator` verifies that the role table and responsibility matrix do not inherit prior `Boundary Status`, `Gate Decision`, or publish-readiness records.
 Do not enter `S2` until publish intent, accountable owners, required independent context boundaries, and phase-critical action owners are established.
 If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
 
@@ -155,6 +158,7 @@ Required Tools:
 
 `Orchestrator` owns `S2` closure.
 `S2` closes only when `Context Pack` is written and field-valid.
+For a publishable run that imports prior non-publish exploration, `S2` closes only when the `Context Pack` labels imported exploration material as evidence or context and refreshes current-run constraints, owner boundaries, and validation surfaces under `Publish` intent.
 
 ## Step S3. Task Graph
 
@@ -181,12 +185,15 @@ For `Lite`, the `Writable Area` for every task must be inside the declared `Run 
 
 `Orchestrator` owns `S3` closure.
 `S3` closes only when `Task Graph` is written and field-valid, including named `Outputs` and a unique `Writable Area` for every task.
+For a publishable run that imports prior non-publish exploration, `S3` closes only when the `Task Graph` is refreshed for the current `Publish` intent and does not reuse an exploration task graph as proof of owner separation, gate coverage, or publish readiness.
 
 ## Execution Entry Assertion
 
 `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
 
 If any pre-execution artifact is missing, malformed, or only drafted in memory, return to the owning step before task-specific execution. Do not defer missing pre-execution artifacts to `S7` or `S8`.
+
+If a publishable run imports prior non-publish exploration, do not enter `S4` until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` records do not satisfy this entry assertion.
 
 ## Step S4. Execute
 

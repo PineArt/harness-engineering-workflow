@@ -145,6 +145,7 @@ Acceptance:
 - completion can be judged
 - non-goals are explicit
 - `Task Brief` is written to the declared `Run Workspace` or an explicitly declared equivalent location before `S1` starts
+- if the run imports or continues from prior non-publish exploration, `Task Brief` records that material as evidence or context only and states the current run's publish goal and scope independently before `S0` closes
 
 Fallback:
 - if the goal is ambiguous, do not start downstream agents
@@ -186,6 +187,7 @@ Acceptance:
 - every role already has a clear owner
 - tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are treated as context or evidence, not separate accountable owners by themselves
 - publish intent or non-publish exploration is recorded before `S2`
+- for any publishable run that imports prior non-publish exploration, `S1` entrance verifies that no prior `Boundary Status`, `Gate Decision`, or publish-readiness claim is carried forward into the current role table or responsibility matrix
 - publishable `Lite` and `Full` boundary status is satisfied before `S2`, not conditional or deferred to gate time
 - S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership resolves through the `Run-Specific Responsibility Matrix` or the canonical defaults in `artifact-registry.md`
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
@@ -198,6 +200,7 @@ Acceptance:
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 - in any publishable `Lite` or `Full` workflow, `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 - in high-risk publish work, external `Critic` and external `Quality Gate` assignments must identify whether they are the same accountable owner or separate review/gate owners; `Full` requires them to be separate owners
+- for any publishable run that imports prior non-publish exploration, `S1` closure verifies that current `Boundary Status`, gate path, and publish-readiness ownership are newly established in this run
 
 Fallback:
 - if outputs cannot be merged cleanly, `Orchestrator` fixes the environment before continuing
@@ -231,6 +234,7 @@ Acceptance:
 - core prefixes stay as stable as possible
 - new context is primarily appended rather than repeatedly rewritten
 - `Context Pack` is written before `S3` starts
+- for any publishable run that imports prior non-publish exploration, imported material is labeled as evidence or context and current-run constraints, owner boundaries, and validation surfaces are refreshed under `Publish` intent
 
 Fallback:
 - if overreach and hallucination rise, `Orchestrator` shrinks context and increases constraints
@@ -270,6 +274,7 @@ Acceptance:
 - dependencies are clear and there are no responsibility gaps
 - no very long chain is forced into one agent
 - `Task Graph` and active `Workflow Draft` are written before `S4` starts
+- for any publishable run that imports prior non-publish exploration, `Task Graph` and active `Workflow Draft` are refreshed for the current `Publish` intent and do not reuse exploration records as proof of owner separation, gate coverage, or publish readiness
 
 Fallback:
 - if two agents are doing the same thing, `Orchestrator` refactors the task tree
@@ -289,6 +294,7 @@ Execution entry assertion:
 - `Task Brief`, `Execution Environment Spec`, `Run Workspace`, `Role Owner Table`, `Context Pack`, `Task Graph`, and `Workflow Draft` when active must already be written and field-valid in the declared workspace or an explicitly declared equivalent location.
 - `Run-Specific Responsibility Matrix` must already be written and field-valid, including owner resolution for S6, S7, S8, gate, publish, commit, check-in, and submit actions.
 - Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
+- Do not enter `S4` for a publishable run that imports prior non-publish exploration until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, `Task Graph`, or `Workflow Draft` records do not satisfy this entry assertion.
 - Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
 
 Method:
