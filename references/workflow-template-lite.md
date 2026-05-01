@@ -78,6 +78,7 @@ The role table must name an explicit owner and record the context boundary used 
 
 ```text
 Publish Intent: Publish | Non-publish exploration | N/A
+Boundary Status: Satisfied | Failed | Non-publish
 
 Role | Owner | Context Boundary | Shared? | Notes
 Orchestrator |  |  |  |
@@ -88,6 +89,8 @@ Quality Gate |  |  |  |
 
 Notes:
 - `Role`, `Owner`, and `Context Boundary` are not interchangeable.
+- For publishable `Lite`, `Boundary Status` may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; S1 either satisfies the boundary before S2 or stops.
+- Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are not separate owners by themselves; `Main Codex` using any execution surface is still `Main Codex` unless a different accountable executor is assigned.
 - A `Lite` workflow must declare publish intent or record itself as non-publish exploration during `S1`, before `S2`.
 - A `Lite` workflow intended to pass final gate and publish must assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners backed by at least 3 distinct independent context boundaries during `S1`, before `S2`.
 - One `Context Boundary` may not back more than one `Owner` in the same run.
@@ -104,9 +107,36 @@ Notes:
 - `Critic` and `Quality Gate` may not be omitted in this tier.
 - If the work needs 5 or more distinct workflow roles to have active ownership, excluding a single `Runtime Verifier` added only for state-surface validation, escalate directly to `Full`.
 
+`Run-Specific Responsibility Matrix`:
+
+```text
+Canonical Defaults: Apply | Partially overridden | Not enough
+
+Phase-Critical Action | Owner Resolution | Required Record | Override? | Notes
+S6 integration closure | Orchestrator unless explicitly overridden | Integration Ledger and Decision Log | No |
+S7 gate verdict | Quality Gate | Gate Decision | No |
+S7 gate outcome append and replay coordination | Orchestrator | Decision Log and refreshed downstream artifacts | No |
+Gate-requested rework | Rework Owner named in Gate Decision from an owner allowed by this mapping | refreshed artifact from Return Step | Deferred field |
+Re-gate after corrective work | Re-gate Owner named in Gate Decision from an owner allowed by this mapping | fresh Gate Decision | Deferred field |
+S8 publish readiness verification | Orchestrator unless explicit publish owner is assigned | publish checklist and Decision Log | No |
+S8 publish, commit, submit, or check-in | explicit publish/check-in owner, otherwise Orchestrator | Published Version, Decision Log, commit or publish evidence when applicable | No |
+
+Explicit Overrides:
+Action:
+Owner:
+Required Record:
+Reason:
+```
+
+Notes:
+- Do not copy the full canonical matrix into every run. List default confirmation, phase-critical actions, and explicit overrides only.
+- Phase-critical actions must resolve to the role table or to a deferred `Gate Decision` owner field before S1 closes.
+- If `Main Codex` owns implementation, changing the execution surface does not satisfy independent implementer ownership.
+- If `Critic` and `Quality Gate` are both assigned to an external model family, identify whether they are the same accountable owner or independent review/gate owners. For high-risk publish work, prefer separate critic and gate owners; if they are combined in Lite, record why stronger separation is unnecessary.
+
 `Orchestrator` owns `S1` closure.
-`S1` closes only when the role owner table is written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, and satisfies the boundary rules above.
-Do not enter `S2` until publish intent, accountable owners, and required independent context boundaries are established.
+`S1` closes only when the role owner table and run-specific responsibility matrix are written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, resolves phase-critical S6/S7/S8 ownership, and satisfies the boundary rules above.
+Do not enter `S2` until publish intent, accountable owners, required independent context boundaries, and phase-critical action owners are established.
 If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
 
 ## Step S2. Context Pack
@@ -282,9 +312,11 @@ Before publish, at minimum have:
 - [ ] declared `Run Workspace` before `S0`
 - [ ] `Task Brief`
 - [ ] role owner table
+- [ ] run-specific responsibility matrix resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners
 - [ ] publish intent or non-publish exploration recorded before `S2`
 - [ ] publishable runs have separate accountable owners for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] publishable runs have at least 3 distinct context boundaries backing those owners
+- [ ] tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments were not counted as independent accountable owners by themselves
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

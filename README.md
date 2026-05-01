@@ -101,6 +101,8 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
 - `Lite` and `Full` runs must declare a `Run Workspace` before `S0`; default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`.
 - Before `S1` closes and `S2` begins, `Lite` and `Full` must declare publish intent or record the run as non-publish exploration.
+- For publishable `Lite` and `Full`, S1 boundary status cannot be conditional or deferred to final gate; it must be satisfied before `S2` or the run stops.
+- `Lite` and `Full` `S1` must include both `Role Owner Table` and `Run-Specific Responsibility Matrix`; the matrix resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership without copying the full canonical matrix.
 - `Lite` final publish requires `Orchestrator`, `Implementer`, and `Quality Gate` to have explicit accountable owners backed by at least 3 independent context boundaries.
 - `Full` runs must formalize that `Run Workspace` during `S1` in `Execution Environment Spec`.
 - For `Lite` and `Full`, `S0` through `S3` close only after their required artifacts are written before the next step starts.
@@ -110,6 +112,7 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - In publishable `Full`, `Implementer`, `Critic`, and `Quality Gate` must have different owners.
 - In publishable `Full`, `Quality Gate` may not also own `Orchestrator`.
 - In publishable `Lite` or `Full`, `Quality Gate` must be explicitly assigned and independent from the implementation context.
+- Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are context or evidence, not independent accountable owners by themselves.
 - `Advisor` may provide direction, debate, or options, but does not satisfy `Critic`, `Quality Gate`, or publish separation by itself.
 - If an external context covers `Critic` but not `Quality Gate` while the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` in [references/checklists.md](./references/checklists.md).
 - Do not relabel missing required independent context boundaries or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.

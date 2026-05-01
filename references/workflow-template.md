@@ -166,7 +166,9 @@ Method:
 - define read and write boundaries
 - record whether the required independent context boundaries can be established for the run
 - define `Role Owner Table`
+- define `Run-Specific Responsibility Matrix` for phase-critical action ownership
 - mark whether the run is intended for final publish or is non-publish exploration before `S2`
+- mark S1 boundary status as `Satisfied`, `Failed`, or `Non-publish`; publishable `Lite` and `Full` may not use `Conditional`, deferred, provisional, or "must be fixed before publish" boundary status
 - for publishable `Lite` and `Full`, assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners on independent context boundaries before `S2`
 - enforce tier-specific owner separation before downstream work starts
 - in publishable `Full`, `Orchestrator` applies the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) before downstream work starts
@@ -174,6 +176,7 @@ Method:
 Outputs:
 - `Execution Environment Spec`
 - `Role Owner Table`
+- `Run-Specific Responsibility Matrix`
 
 Acceptance:
 - all agents use the same skeleton
@@ -181,7 +184,10 @@ Acceptance:
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
+- tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are treated as context or evidence, not separate accountable owners by themselves
 - publish intent or non-publish exploration is recorded before `S2`
+- publishable `Lite` and `Full` boundary status is satisfied before `S2`, not conditional or deferred to gate time
+- S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership resolves through the `Run-Specific Responsibility Matrix` or the canonical defaults in `artifact-registry.md`
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
 - a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries during `S1`, before downstream execution starts
 - each delegated context boundary maps to only one owner within the run
@@ -191,6 +197,7 @@ Acceptance:
 - in a publishable `Full` workflow, `Implementer`, `Critic`, and `Quality Gate` have different owners
 - in a publishable `Full` workflow, `Quality Gate` does not share an owner with `Orchestrator`
 - in any publishable `Lite` or `Full` workflow, `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
+- in high-risk publish work, external `Critic` and external `Quality Gate` assignments must identify whether they are the same accountable owner or separate review/gate owners; `Full` requires them to be separate owners
 
 Fallback:
 - if outputs cannot be merged cleanly, `Orchestrator` fixes the environment before continuing
@@ -280,6 +287,7 @@ Inputs:
 Execution entry assertion:
 - `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
 - `Task Brief`, `Execution Environment Spec`, `Run Workspace`, `Role Owner Table`, `Context Pack`, `Task Graph`, and `Workflow Draft` when active must already be written and field-valid in the declared workspace or an explicitly declared equivalent location.
+- `Run-Specific Responsibility Matrix` must already be written and field-valid, including owner resolution for S6, S7, S8, gate, publish, commit, check-in, and submit actions.
 - Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
 - Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
 
@@ -419,6 +427,7 @@ Inputs:
 
 Method:
 - `Orchestrator` verifies that the latest `Gate Decision` verdict is `Pass` before publish starts
+- `Orchestrator` resolves publish, commit, check-in, or submit ownership from the S1 `Run-Specific Responsibility Matrix` before the action starts
 - `Human Decision Maker` freezes the version when active; otherwise `Orchestrator` records the accepted version freeze
 - `Orchestrator` records decisions unless the decision belongs to `Human Decision Maker`
 - summarize rework patterns
@@ -452,6 +461,7 @@ Acceptance:
 - result acceptance is clear and does not depend on line-by-line human review
 - `Full` runs missing required independent context boundaries or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
 - final publish evidence includes at least 3 distinct context boundaries across the required separated owners
+- final publish evidence includes the S1 `Run-Specific Responsibility Matrix` and any commit, check-in, submit, or publish evidence required by that matrix
 - external `Critic` coverage without external `Quality Gate` coverage satisfies the `External-Critic-Only Quality Gate Rule`
 
 Fallback:
@@ -558,7 +568,7 @@ Read an engineering article and produce a reusable multi-agent workflow template
 Minimal execution order:
 
 1. `S0` `Orchestrator` writes `Task Brief` and opens `Decision Log`
-2. `S1` `Orchestrator` produces `Execution Environment Spec` and `Role Owner Table`
+2. `S1` `Orchestrator` produces `Execution Environment Spec`, `Role Owner Table`, and `Run-Specific Responsibility Matrix`
 3. `S2` `Orchestrator` produces `Context Pack`
 4. `S2` `Source Analyst` extracts claims and evidence from the article
 5. `S2` `Principle Mapper` compresses them into engineering principles

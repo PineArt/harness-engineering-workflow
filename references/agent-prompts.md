@@ -25,13 +25,15 @@ If sources are insufficient, do not fill the gap with a definite conclusion.
 Prefer tools and external feedback to establish factual anchors. Do not rely only on text-only reasoning.
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 For Ultra Lite, the single Owner writes the goal/scope block and completes `Preflight Judgment` before task-specific execution; escalate before execution if durable process records, multiple owners, a formal gate, or multiple validation signals are needed.
-For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
-Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the Responsibility Matrix in artifact-registry.md or ask Orchestrator to assign one.
+For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, writes both Role Owner Table and Run-Specific Responsibility Matrix during S1 before S2, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
+Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the S1 Run-Specific Responsibility Matrix first, then the canonical Responsibility Matrix in artifact-registry.md, or ask Orchestrator to assign one.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
+For publishable Lite or Full, do not use `Conditional`, deferred, provisional, or "must be fixed before publish" boundary status in S1; either boundary separation is satisfied before S2 or the run stops.
 For publishable Lite or Full, if an external context covers Critic but not Quality Gate while the main context owns implementation, apply the External-Critic-Only Quality Gate Rule from checklists.md.
 Advisor output does not satisfy Critic, Quality Gate, or publish-separation requirements unless the same owner is explicitly assigned to that role and produces the required artifact.
 For publishable Lite or Full, Orchestrator must not own Implementer or Quality Gate.
+Main Codex using any tool surface, protocol, credential, host, path, session, sandbox, runtime, or execution environment is still Main Codex; execution surfaces do not create independent owners by themselves.
 Delegation counts only when execution crosses an independent context boundary.
 Different role labels, tool calls, or spawns that remain within the same context do not count.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
@@ -49,12 +51,13 @@ Tasks:
 3. Design the Task Graph, including parallel blocks, serial blocks, and human decision points.
 4. Own and declare the `Run Workspace` for Lite and Full before S0, including active path, completed path, artifact index, step-closure gates, and exception paths.
 5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
-6. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
-7. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
-8. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
-9. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
-10. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
-11. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
+6. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
+7. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
+8. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
+9. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
+10. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
+11. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+12. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
@@ -215,6 +218,7 @@ Also check:
 - whether the `Gate Decision` fields match `artifact-registry.md`
 - whether the tier-appropriate `Run Workspace` was declared before S0
 - whether S0 through S3 step-closure artifacts were written and field-valid before the next step started
+- whether S1 includes a field-valid `Run-Specific Responsibility Matrix` resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 
@@ -272,7 +276,7 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator declares publish intent or non-publish exploration, fills the role owner table, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries
+3. S1 Orchestrator declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries and S6/S7/S8 ownership is resolved
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
 5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
 6. S4 Implementer executes and produces Execution Output Record
@@ -286,7 +290,7 @@ Lite:
 Full:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator declares publish intent or non-publish exploration and produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, delegation posture, and the required independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries
+3. S1 Orchestrator declares publish intent or non-publish exploration and produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, Run-Specific Responsibility Matrix, boundary status, delegation posture, and the required independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries and S6/S7/S8 ownership is resolved
 4. S2 Orchestrator produces Context Pack
 5. S2 Source Analyst produces Claims List / Evidence Map
 6. S2 Principle Mapper produces Principle Set; do not enter S3 until required S2 artifacts are written

@@ -10,6 +10,7 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 |---|---|---|---|
 | `Task Brief` | `Orchestrator` | `S0` | `Lite`, `Full` |
 | `Role Owner Table` | `Orchestrator` | `S1` | `Lite`, `Full` |
+| `Run-Specific Responsibility Matrix` | `Orchestrator` | `S1` | `Lite`, `Full` |
 | `Execution Environment Spec` | `Orchestrator` | `S1` | `Full` |
 | `Context Pack` | `Orchestrator` | `S2` | `Lite`, `Full` |
 | `Task Graph` | `Orchestrator` | `S3` | `Lite`, `Full` |
@@ -72,13 +73,20 @@ Rules:
 - all required fields from the relevant minimum schema are present
 - required fields contain task-specific values rather than placeholders
 - path fields are syntactically valid for the current workspace
-- owner, artifact, and writable-area references agree with the current `Role Owner Table` and `Task Graph`
+- owner, artifact, action, and writable-area references agree with the current `Role Owner Table`, `Run-Specific Responsibility Matrix`, and `Task Graph`
 
 If field validation fails, the current step does not close.
 
 ## Responsibility Matrix
 
 No concrete workflow action may remain ownerless. If a rule, fallback, validation, replay, publish action, or environment repair does not name a specific owner elsewhere, `Orchestrator` owns assigning one before the action starts.
+
+The table below is the canonical default matrix. `Lite` and `Full` runs must also write a run-specific S1 mapping before `S2`.
+The run-specific mapping must not duplicate the full canonical matrix. It records:
+- whether canonical defaults apply
+- phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, submit, and check-in owner resolution
+- any non-default owner override, with a brief reason
+- any action that has no canonical default, which `Orchestrator` must assign before that action starts
 
 | Action Area | Default Owner | Required Record |
 |---|---|---|
@@ -100,8 +108,38 @@ No concrete workflow action may remain ownerless. If a rule, fallback, validatio
 | Missing `artifact-registry.md` or `checklists.md` restoration | `Orchestrator`; `Quality Gate` blocks gate progress until restored | `Decision Log` |
 | Publish readiness verification | `Orchestrator` unless a publish owner is explicitly assigned | publish checklist and `Decision Log` |
 | `Published Version` production | `Template Editor` or explicit publish owner | `Published Version` |
+| Commit, check-in, or submit action after gate pass | explicit publish/check-in owner; otherwise `Orchestrator` for `Lite`, `Template Editor` or publish owner for `Full` | commit, submit, or publish evidence plus `Decision Log` |
 | Final version freeze or human arbitration | `Human Decision Maker` when active; otherwise `Orchestrator` records the accepted decision | `Decision Log` |
 | Moving or copying durable run records from `exec-plans/active/` to `exec-plans/completed/` | `Orchestrator` unless publish owner is assigned | `Decision Log` and preserved artifact index |
+
+### Run-Specific Responsibility Matrix
+
+```text
+Canonical Defaults: Apply | Partially overridden | Not enough
+
+Phase-Critical Action | Owner Resolution | Required Record | Override? | Notes
+S6 integration closure | Orchestrator unless explicitly overridden | Integration Ledger and Decision Log | No |
+S7 gate verdict | Quality Gate | Gate Decision | No |
+S7 gate outcome append and replay coordination | Orchestrator | Decision Log and refreshed downstream artifacts | No |
+Gate-requested rework | Rework Owner named in Gate Decision from an owner already allowed by this mapping | refreshed artifact from Return Step | Deferred field | Gate must name the owner when needed
+Re-gate after corrective work | Re-gate Owner named in Gate Decision from an owner already allowed by this mapping | fresh Gate Decision | Deferred field | Gate must name the owner when needed
+S8 publish readiness verification | Orchestrator unless explicit publish owner is assigned | publish checklist and Decision Log | No |
+S8 publish, commit, check-in, or submit | explicit publish/check-in owner; otherwise Orchestrator for Lite, Template Editor or publish owner for Full published assets | Published Version, Decision Log, commit or publish evidence when applicable | No |
+
+Explicit Overrides:
+Action:
+Owner:
+Required Record:
+Reason:
+```
+
+Field notes:
+- `Canonical Defaults` is `Apply` only when every unlisted action uses the canonical default matrix above.
+- `Phase-Critical Action` rows may use the default owner, but they must still be present so S6, S7, S8, gate, publish, commit, submit, and check-in responsibility is mechanically inspectable.
+- `Owner Resolution` must resolve to a role or owner from the `Role Owner Table`, except for deferred `Gate Decision` fields that must later name `Rework Owner` or `Re-gate Owner`.
+- `Override?` is `No`, `Yes`, or `Deferred field`.
+- each `Explicit Overrides` entry needs a short reason; do not add reasons for default assignments.
+- if the run cannot resolve a phase-critical action during S1, S1 does not close.
 
 ## Minimum Schemas
 
@@ -119,14 +157,17 @@ Human Decision Points:
 
 ```text
 Publish Intent: Publish | Non-publish exploration | N/A
+Boundary Status: Satisfied | Failed | Non-publish
 
 Role | Owner | Context Boundary | Shared? | Notes
 ```
 
 Field notes:
 - `Publish Intent` is a run-level field, not a per-role column; `Lite` and `Full` must record it before `S2`
+- `Boundary Status` is a run-level field. For publishable `Lite` and `Full`, it may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; use `Satisfied` only when all required owner/context separation is already established before `S2`, otherwise use `Failed` and stop or record `Non-publish`
 - `Owner` names the accountable person, agent, or execution owner for that role; context labels alone do not satisfy ownership
 - `Context Boundary` names the execution context used by the owner; this is the hard separation record for delegation
+- Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments may describe `Context Boundary` or evidence, but they are not owners. `Owner` must identify the accountable executor that can accept the task, produce the required artifact, and be reassigned or replaced.
 - `Shared?` is `Yes` or `No`
 - within a run, one `Context Boundary` may map to only one `Owner`
 - if multiple rows share one `Context Boundary`, they must also share the same `Owner`, and `Shared?` must be `Yes`

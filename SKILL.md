@@ -37,6 +37,7 @@ Treat `role`, `owner`, and `subagent` as different things:
 - `Role`: the responsibility
 - `Owner`: the accountable executor for that responsibility
 - `Subagent`: the concrete delegated execution slot, but for this skill delegation counts only when execution crosses an independent context boundary
+- Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are not independent accountable owners by themselves. They may identify `Context Boundary` or evidence, but `Owner` must identify the accountable executor that can accept the task, produce the required artifact, and be reassigned or replaced.
 
 Default execution posture:
 - `Ultra Lite`: the single `Owner` stays single-owner unless boundaries are unclear
@@ -49,6 +50,7 @@ Default execution posture:
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
 Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
 Before `S1` closes and before `S2` begins, `Orchestrator` must declare whether a `Lite` or `Full` run is intended for publish or is non-publish exploration.
+For publishable `Lite` and `Full`, `S1` boundary status may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; it is either satisfied before `S2` or the run stops before downstream work.
 For publishable `Lite` and `Full`, `Orchestrator` must not own `Implementer` or `Quality Gate`.
 For publishable `Lite` and `Full`, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
 If publish intent, accountable owners, or required independent context boundaries cannot be established before `S2`, stop before task-specific downstream work starts, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration.
@@ -56,12 +58,16 @@ If publish intent, accountable owners, or required independent context boundarie
 `Orchestrator` must not defer missing publish-separation boundaries to final review; create or request the missing independent context before `S2`.
 Agent identifiers may be recorded when available, but they are supporting evidence only and do not prove context independence.
 Before any concrete workflow action starts, it must have an accountable owner. Use the `Responsibility Matrix` in [references/artifact-registry.md](references/artifact-registry.md) whenever ownership is unclear.
+For `Lite` and `Full`, `S1` must include both a `Role Owner Table` and a `Run-Specific Responsibility Matrix`; the role table records role/context boundaries, while the run-specific matrix resolves concrete action ownership.
+The run-specific matrix must not duplicate the full canonical matrix. It must make S6, S7, S8, gate, rework, re-gate, replay, publish, commit, submit, and check-in ownership mechanically inspectable, and it must list any non-default owner override with a brief reason.
+If a phase-critical action cannot resolve to the S1 mapping or to a canonical default before `S2`, `Orchestrator` stops before task-specific downstream work starts.
 
 Run workspace posture:
 - `Ultra Lite`: the single `Owner` completes a `Preflight Judgment` before changing files or executing task-specific actions. It must state whether the task is still Ultra Lite, why, the concrete validation path, whether that path is executable now, the validation-failure action, and whether to escalate before execution. The judgment may live inline in the current response or in a repo-backed note. Escalate before execution if the work needs durable process records, multiple owners, a formal gate, or more than one validation path.
 - `Lite`: `Orchestrator` establishes, declares, and validates a `Run Workspace` immediately after tier selection and before `S0`. Default path: `exec-plans/active/YYYY-MM-DD-<slug>/`.
 - `Full`: `Orchestrator` establishes, declares, and validates a `Run Workspace` immediately after tier selection and before `S0`; then formalizes it during `S1` as part of `Execution Environment Spec`. Default path: `exec-plans/active/YYYY-MM-DD-<slug>/`; `Orchestrator` moves or copies completed run records to `exec-plans/completed/YYYY-MM-DD-<slug>/` unless a publish owner is explicitly assigned.
 - `Lite` and `Full`: `Orchestrator` closes each step from `S0` through `S3` only after the required artifact for that step has been written to the run workspace, or to an explicitly declared equivalent location, before the next step starts.
+- `Lite` and `Full`: `S1` closes only after both `Role Owner Table` and `Run-Specific Responsibility Matrix` are written and field-valid.
 - `S4` is only the final execution-entry assertion that earlier step-closure gates succeeded; it is not the first place missing artifacts should be discovered.
 - `Orchestrator` owns the artifact index and any exception to the default path. Any exception must be declared in `Task Graph` `Writable Area`; in `Full`, also declare it in `Execution Environment Spec` `Artifact Locations`.
 - `Orchestrator` validates any declared equivalent location as writable and accessible before the step closes. If validation fails, the step does not close.
@@ -161,6 +167,7 @@ Lite:
 - one declared `Run Workspace` before `S0`
 - one short `Task Brief`
 - one role owner table
+- one run-specific responsibility matrix
 - one `Context Pack`
 - one `Task Graph`
 - step-closure records for `S0`, `S1`, `S2`, and `S3` before the next step starts
