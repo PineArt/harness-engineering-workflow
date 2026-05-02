@@ -187,6 +187,7 @@ Acceptance:
 - every role already has a clear owner
 - tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are treated as context or evidence, not separate accountable owners by themselves
 - publish intent or non-publish exploration is recorded before `S2`
+- `validate_harness_run.py <run-workspace>` passes before `S1` closes and before `S2` begins
 - for any publishable run that imports prior non-publish exploration, `S1` entrance verifies that no prior `Boundary Status`, `Gate Decision`, or publish-readiness claim is carried forward into the current role table or responsibility matrix
 - publishable `Lite` and `Full` boundary status is satisfied before `S2`, not conditional or deferred to gate time
 - S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership resolves through the `Run-Specific Responsibility Matrix` or the canonical defaults in `artifact-registry.md`
@@ -293,6 +294,7 @@ Execution entry assertion:
 - `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
 - `Task Brief`, `Execution Environment Spec`, `Run Workspace`, `Role Owner Table`, `Context Pack`, `Task Graph`, and `Workflow Draft` when active must already be written and field-valid in the declared workspace or an explicitly declared equivalent location.
 - `Run-Specific Responsibility Matrix` must already be written and field-valid, including owner resolution for S6, S7, S8, gate, publish, commit, check-in, and submit actions.
+- The latest `validate_harness_run.py <run-workspace>` result must pass; otherwise return to `S1` before execution or gate review.
 - Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
 - Do not enter `S4` for a publishable run that imports prior non-publish exploration until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, `Task Graph`, or `Workflow Draft` records do not satisfy this entry assertion.
 - Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
@@ -468,6 +470,7 @@ Acceptance:
 - `Full` runs missing required independent context boundaries or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
 - final publish evidence includes at least 3 distinct context boundaries across the required separated owners
 - final publish evidence includes the S1 `Run-Specific Responsibility Matrix` and any commit, check-in, submit, or publish evidence required by that matrix
+- final publish evidence includes a passing `validate_harness_run.py <run-workspace>` result from before `S2` and a current passing result from before the latest `Gate Decision`
 - external `Critic` coverage without external `Quality Gate` coverage satisfies the `External-Critic-Only Quality Gate Rule`
 
 Fallback:

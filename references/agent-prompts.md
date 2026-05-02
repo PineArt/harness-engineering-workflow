@@ -26,6 +26,7 @@ Prefer tools and external feedback to establish factual anchors. Do not rely onl
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 For Ultra Lite, the single Owner writes the goal/scope block and completes `Preflight Judgment` before task-specific execution; escalate before execution if durable process records, multiple owners, a formal gate, or multiple validation signals are needed.
 For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, writes both Role Owner Table and Run-Specific Responsibility Matrix during S1 before S2, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
+For Lite and Full, Orchestrator runs `python scripts/validate_harness_run.py <run-workspace>` at S1 closure / S2 entry. If it fails, return to S1 before task-specific downstream work.
 Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the S1 Run-Specific Responsibility Matrix first, then the canonical Responsibility Matrix in artifact-registry.md, or ask Orchestrator to assign one.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
@@ -218,6 +219,7 @@ Also check:
 - whether the `Gate Decision` fields match `artifact-registry.md`
 - whether the tier-appropriate `Run Workspace` was declared before S0
 - whether S0 through S3 step-closure artifacts were written and field-valid before the next step started
+- whether `validate_harness_run.py <run-workspace>` passed before S2 and before the current gate verdict
 - whether S1 includes a field-valid `Run-Specific Responsibility Matrix` resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
@@ -276,14 +278,14 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, and applies the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries and S6/S7/S8 ownership is resolved
+3. S1 Orchestrator declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
 5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
 6. S4 Implementer executes and produces Execution Output Record
 7. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 8. S5 Critic produces Risk Register
 9. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
-10. S7 Quality Gate returns `Pass / Conditional Pass / Fail`
+10. S7 Quality Gate re-runs `validate_harness_run.py` and returns `Pass / Conditional Pass / Fail`
 11. S7 Orchestrator appends the gate outcome to `Decision Log`
 12. S8 Orchestrator verifies required artifacts before publish
 

@@ -74,6 +74,7 @@ Rules:
 - required fields contain task-specific values rather than placeholders
 - path fields are syntactically valid for the current workspace
 - owner, artifact, action, and writable-area references agree with the current `Role Owner Table`, `Run-Specific Responsibility Matrix`, and `Task Graph`
+- for `Lite` and `Full` S1 closure or S2 entry, `python scripts/validate_harness_run.py <run-workspace>` passes against the current run artifacts
 
 If field validation fails, the current step does not close.
 
@@ -372,6 +373,7 @@ Field rules:
 - `Owner` is the gate reviewer owner
 - `Rework Owner` is the owner who must execute the corrective action for `Fail` or `Conditional Pass`
 - verdict-specific population rules and replay semantics are canonical in `checklists.md`
+- before returning `Pass`, `Conditional Pass`, or any publish-readiness verdict, `Quality Gate` must cite a passing `validate_harness_run.py <run-workspace>` result or fail the gate
 
 ### `Next Iteration Notes`
 

@@ -138,6 +138,7 @@ Notes:
 
 `Orchestrator` owns `S1` closure.
 `S1` closes only when the role owner table and run-specific responsibility matrix are written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, resolves phase-critical S6/S7/S8 ownership, and satisfies the boundary rules above.
+`S1` also closes only after `Orchestrator` runs `python scripts/validate_harness_run.py <run-workspace>` from the skill root, or the equivalent installed script path, and records a passing result. A failed result returns the workflow to `S1` and blocks `S2`.
 For a publishable run that imports prior non-publish exploration, `S1` also closes only after `Orchestrator` verifies that the role table and responsibility matrix do not inherit prior `Boundary Status`, `Gate Decision`, or publish-readiness records.
 Do not enter `S2` until publish intent, accountable owners, required independent context boundaries, and phase-critical action owners are established.
 If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
@@ -192,6 +193,7 @@ For a publishable run that imports prior non-publish exploration, `S3` closes on
 `S4` is not the first artifact gate. It may begin only after the step-closure gates for `S0`, `S1`, `S2`, and `S3` have already succeeded.
 
 If any pre-execution artifact is missing, malformed, or only drafted in memory, return to the owning step before task-specific execution. Do not defer missing pre-execution artifacts to `S7` or `S8`.
+If the S1 validator was not run successfully, return to `S1`; `S4` and `S7` may not be the first place this is discovered.
 
 If a publishable run imports prior non-publish exploration, do not enter `S4` until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` records do not satisfy this entry assertion.
 
@@ -296,6 +298,7 @@ Gate verdict, field-population, and replay rules are canonical in [checklists.md
 Rules:
 - return only `Pass`, `Conditional Pass`, or `Fail`
 - follow the canonical gate verdict, field-population, and replay rules from [checklists.md](checklists.md)
+- before returning `Pass`, `Conditional Pass`, guarded-publish, or any publish-readiness verdict, run `python scripts/validate_harness_run.py <run-workspace>` and cite the passing result in the `Gate Decision`; if it fails or was not run, return `Fail` to `S1`
 
 If `checklists.md` is temporarily unavailable:
 - `Orchestrator` restores that file from version control first
@@ -334,6 +337,7 @@ Before publish, at minimum have:
 - [ ] the latest `Gate Decision` verdict is `Pass`
 - [ ] `Decision Log`
 - [ ] `S0`, `S1`, `S2`, and `S3` step-closure gates succeeded before the next step began
+- [ ] `validate_harness_run.py <run-workspace>` passed at `S1` closure / `S2` entry and again before the `S7` verdict
 
 `Decision Log` is maintained by `Orchestrator` by default.
 If `Human Decision Maker` exists, that role's final decision must be appended to the same `Decision Log`.

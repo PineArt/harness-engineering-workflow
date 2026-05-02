@@ -37,6 +37,7 @@ Other files should reference these gates by name instead of redefining them.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - Use `Fail` for any `Lite` or `Full` run if the required `Run Workspace` was not declared before `S0`, or if `S0` through `S3` step-closure artifacts were created only after the next step or task-specific execution had already started.
+- Use `Fail` for any `Lite` or `Full` run if `python scripts/validate_harness_run.py <run-workspace>` was not run successfully at `S1` closure / `S2` entry before task-specific downstream work.
 - Use `Fail` for any publishable `Lite` or `Full` run that imports or continues from non-publish exploration if `S0` did not record the imported material as evidence or context only, or if `S0` through `S3` were not re-closed under current `Publish` intent before task-specific execution.
 - Use `Fail` for any `Lite` or `Full` run if the `Run-Specific Responsibility Matrix` was not written during `S1` before `S2`, or if phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, or submit ownership cannot be resolved from that matrix or the canonical defaults.
 - Use `Fail` for any publishable `Lite` or `Full` run whose S1 boundary status is conditional, deferred, provisional, or depends on a later gate before it can become true.
@@ -116,6 +117,7 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Lite` and `Full` declared a `Run Workspace` before `S0`
 - [ ] `S0`, `S1`, `S2`, and `S3` step-closure gates succeeded before the next step began
 - [ ] `Orchestrator` enforced step-closure gates and returned to the failed step on missing or field-invalid artifacts
+- [ ] `validate_harness_run.py <run-workspace>` passed at `S1` closure / `S2` entry, and again before any `S7` publish/pass/readiness verdict
 - [ ] `Run-Specific Responsibility Matrix` was written during `S1`, before `S2`, and resolves phase-critical action owners
 - [ ] every fallback, replay, restore, publish, escalation, and context-split action has an accountable owner
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow

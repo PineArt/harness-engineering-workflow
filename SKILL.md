@@ -51,6 +51,7 @@ Do not treat distinct role names by themselves as proof of distinct execution ow
 Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
 Before `S1` closes and before `S2` begins, `Orchestrator` must declare whether a `Lite` or `Full` run is intended for publish or is non-publish exploration.
 If a `Lite` or `Full` run imports or continues from non-publish exploration, `S0` closure must record the imported exploration material as evidence or context only, and `S0` through `S3` must re-close under the current `Publish` intent. A publishable run may not inherit `Boundary Status`, `Gate Decision`, or publish-readiness claims from non-publish exploration; it must establish its own publish goal, owner boundaries, gate path, and publish readiness in the current run.
+For `Lite` and `Full`, `S1` closure and `S2` entry must run `python scripts/validate_harness_run.py <run-workspace>` from the skill root, or the equivalent installed script path, before task-specific downstream work starts. A failing validator result is a fatal step-closure failure. This validator is an enforcement gate, not advisory evidence.
 For publishable `Lite` and `Full`, `S1` boundary status may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; it is either satisfied before `S2` or the run stops before downstream work.
 For publishable `Lite` and `Full`, `Orchestrator` must not own `Implementer` or `Quality Gate`.
 For publishable `Lite` and `Full`, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
@@ -70,6 +71,7 @@ Run workspace posture:
 - `Lite` and `Full`: `Orchestrator` closes each step from `S0` through `S3` only after the required artifact for that step has been written to the run workspace, or to an explicitly declared equivalent location, before the next step starts.
 - `Lite` and `Full`: when a publishable run uses prior non-publish exploration, `S0` through `S3` must close under the current `Publish` intent; stale exploration `Context Pack`, `Task Graph`, boundary status, gate verdict, or publish-readiness records do not satisfy current-run closure.
 - `Lite` and `Full`: `S1` closes only after both `Role Owner Table` and `Run-Specific Responsibility Matrix` are written and field-valid.
+- `Lite` and `Full`: `S1` field-valid includes a passing `validate_harness_run.py` result for the current run workspace. The validator must also pass again before `S7` can return a publish/pass/readiness verdict.
 - `S4` is only the final execution-entry assertion that earlier step-closure gates succeeded; it is not the first place missing artifacts should be discovered.
 - `Orchestrator` owns the artifact index and any exception to the default path. Any exception must be declared in `Task Graph` `Writable Area`; in `Full`, also declare it in `Execution Environment Spec` `Artifact Locations`.
 - `Orchestrator` validates any declared equivalent location as writable and accessible before the step closes. If validation fails, the step does not close.

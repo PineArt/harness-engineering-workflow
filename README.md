@@ -103,6 +103,7 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - Before `S1` closes and `S2` begins, `Lite` and `Full` must declare publish intent or record the run as non-publish exploration.
 - If a publishable `Lite` or `Full` run imports or continues from non-publish exploration, `S0` records that material as evidence or context only, and `S0` through `S3` must re-close under current `Publish` intent.
 - Publishable `Lite` and `Full` runs may not inherit `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` closure from non-publish exploration.
+- `Lite` and `Full` runs must pass `python scripts/validate_harness_run.py <run-workspace>` at `S1` closure / `S2` entry. Run `python scripts/validate_harness_run.py --self-test` after changing these rules.
 - For publishable `Lite` and `Full`, S1 boundary status cannot be conditional or deferred to final gate; it must be satisfied before `S2` or the run stops.
 - `Lite` and `Full` `S1` must include both `Role Owner Table` and `Run-Specific Responsibility Matrix`; the matrix resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership without copying the full canonical matrix.
 - `Lite` final publish requires `Orchestrator`, `Implementer`, and `Quality Gate` to have explicit accountable owners backed by at least 3 independent context boundaries.
