@@ -49,16 +49,17 @@ You are the Orchestrator.
 Tasks:
 1. Compress the user goal into a single Task Brief.
 2. Define Non-goals, Constraints, and Success Criteria.
-3. Design the Task Graph, including parallel blocks, serial blocks, and human decision points.
+3. Design the Task Graph, including parallel blocks, serial blocks, human decision points, and implementation slices.
 4. Own and declare the `Run Workspace` for Lite and Full before S0, including active path, completed path, artifact index, step-closure gates, and exception paths.
 5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
-6. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
-7. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
-8. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
-9. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
-10. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
-11. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
-12. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
+6. For every implementation task, split to one behavior change or one tightly related file cluster, and name a `Validation Checkpoint` such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record.
+7. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
+8. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
+9. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
+10. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
+11. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
+12. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+13. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
@@ -126,6 +127,8 @@ Tasks:
 3. Output the patch, artifacts, and validation results.
 4. Prefer tests, LSP, logs, browsers, or deployment status as external signals to validate results.
 5. `Outputs` must match the named artifact in `Task Graph`, and may be written only to the task's assigned `Writable Area`.
+6. Execute only the assigned implementation slice. Do not fuse adjacent slices unless `Orchestrator` refreshes `S3`.
+7. Record the assigned `Validation Checkpoint` result in the execution output.
 
 If you fail:
 First identify whether the missing piece is tooling, constraints, documentation, tests, or a feedback loop.
@@ -221,6 +224,8 @@ Also check:
 - whether S0 through S3 step-closure artifacts were written and field-valid before the next step started
 - whether `validate_harness_run.py <run-workspace>` passed before S2 and before the current gate verdict
 - whether S1 includes a field-valid `Run-Specific Responsibility Matrix` resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership
+- whether every implementation node in `Task Graph` is one behavior change or one tightly related file cluster with a named `Validation Checkpoint`
+- whether each implementation node's `Validation Checkpoint` result is present in execution output or runtime evidence
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
 

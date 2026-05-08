@@ -170,6 +170,7 @@ Context Boundary:
 Depends On:
 Outputs:
 Writable Area:
+Validation Checkpoint:
 Fallback:
 ```
 
@@ -180,12 +181,15 @@ At minimum, define:
 - one bound `Context Boundary` per delegated task
 - delegated tasks only reuse a `Context Boundary` when they also reuse the same `Owner`
 - named `Outputs` and one unique `Writable Area`
+- implementation tasks sliced to one behavior change or one tightly related file cluster
+- one `Validation Checkpoint` per implementation task, naming the external signal that proves that slice
 - human decision points
 
 For `Lite`, the `Writable Area` for every task must be inside the declared `Run Workspace` unless an exception path is explicitly declared in both the `Run Workspace` and this `Task Graph`.
 
 `Orchestrator` owns `S3` closure.
-`S3` closes only when `Task Graph` is written and field-valid, including named `Outputs` and a unique `Writable Area` for every task.
+`S3` closes only when `Task Graph` is written and field-valid, including named `Outputs`, a unique `Writable Area` for every task, and `Validation Checkpoint` for every implementation task.
+If one implementation task would require multiple behavior changes across unrelated areas, `Orchestrator` splits it before `S3` closes instead of relying on `Implementer` to subdivide it during `S4`.
 For a publishable run that imports prior non-publish exploration, `S3` closes only when the `Task Graph` is refreshed for the current `Publish` intent and does not reuse an exploration task graph as proof of owner separation, gate coverage, or publish readiness.
 
 ## Execution Entry Assertion
@@ -218,6 +222,8 @@ Execution rules:
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
 - Write intermediate results only to each role's own area.
 - `Outputs` must match the named artifact in `Task Graph`, and may be written only to that task's `Writable Area`.
+- For implementation tasks, execute the `Task Graph` slice as assigned. Do not fuse adjacent slices unless `Orchestrator` first refreshes `S3`.
+- Record the result of the task's `Validation Checkpoint` in the execution output or runtime evidence.
 - On failure, fall back only to the responsible step.
 
 ## Step S5. Risk Scan

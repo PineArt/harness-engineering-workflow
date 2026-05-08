@@ -1,4 +1,4 @@
-# Valid Single Runbook
+# Empty Task Checkpoint Cell Runbook
 
 ## S1 Role Owner Table
 
@@ -8,9 +8,9 @@ Boundary Status: Satisfied
 Role | Owner | Context Boundary | Shared? | Notes
 --- | --- | --- | --- | ---
 Orchestrator | Main Codex | current Codex thread | No | owns run workspace
-Implementer | Claude Delegate Implementer | delegate implementation session | No | owns patch
-Critic | Claude Delegate Critic | delegate critic session | No | owns risk scan
-Quality Gate | Claude Delegate Gate | delegate gate session | No | owns final gate
+Implementer | Local Worker Agent | local worker context 019x | No | owns patch
+Critic | Opus Critic | opus critic session | No | owns risk scan
+Quality Gate | Opus Gate | opus gate session | No | owns gate
 
 Run-Specific Responsibility Matrix:
 
@@ -27,9 +27,9 @@ Context is current and publish-scoped.
 
 Task | Owner | Context Boundary | Depends On | Outputs | Writable Area | Validation Checkpoint | Fallback
 --- | --- | --- | --- | --- | --- | --- | ---
-Focused patch slice | Implementer | delegate implementation session | S2 Context Pack | Execution Output Record | src/focused-slice | focused test smoke check | Return to S3
+Focused patch slice | Implementer | local worker context 019x | S2 Context Pack | Execution Output Record | src/focused-slice |  | Return to S3
 
 ## S7 Gate Decision
 
 Verdict: Pass
-Evidence: validator passed and gate owner is independent.
+Evidence: this fixture should fail before gate because the implementation node has an empty validation checkpoint cell.

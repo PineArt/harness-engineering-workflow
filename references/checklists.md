@@ -152,6 +152,9 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Ultra Lite` has the short goal/scope block and complete `Preflight Judgment` before execution, or has escalated to `Lite`
 - [ ] `Lite` has `Run Workspace` before `S0`, `Task Brief` and initial `Decision Log` before `S1`, role owner table and run-specific responsibility matrix before `S2`, `Context Pack` before `S3`, and `Task Graph` before `S4`
 - [ ] `Full` has `Run Workspace` before `S0`, `Task Brief` before `S1`, `Execution Environment Spec`, role owner table, and run-specific responsibility matrix before `S2`, `Context Pack` before `S3`, and `Task Graph` plus active `Workflow Draft` before `S4`
+- [ ] each implementation node in `Task Graph` is one behavior change or one tightly related file cluster
+- [ ] each implementation node in `Task Graph` has a named `Validation Checkpoint`
+- [ ] each implementation node's `Validation Checkpoint` result is present in execution output or runtime evidence before gate review
 - [ ] each step has inputs
 - [ ] each step has outputs
 - [ ] each step has acceptance criteria

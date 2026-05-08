@@ -55,6 +55,7 @@ class RunArtifacts:
     boundary_status: str
     roles: dict[str, RoleRow]
     matrix_text: str
+    task_graph_text: str
 
 
 def _read_markdown(root: Path) -> str:
@@ -129,11 +130,24 @@ def _matrix_text(s1_text: str) -> str:
     return match.group(1) if match else ""
 
 
+def _task_graph_text(text: str) -> str:
+    matches = []
+    for step in ("S3", "Step S3"):
+        section = _section(text, step)
+        if section:
+            matches.append(section)
+    if not matches:
+        pattern = re.compile(r"(?ims)^#{1,4}\s*Task Graph\b.*?(?=^#{1,4}\s*(?:S[0-9]|Step S[0-9])\b|\Z)")
+        matches = [match.group(0) for match in pattern.finditer(text)]
+    return "\n\n".join(matches)
+
+
 def load_run(root: Path) -> RunArtifacts:
     text = _read_markdown(root)
     s1_text = _section(text, "S1")
     s7_text = _section(text, "S7")
     s8_text = _section(text, "S8")
+    task_graph_text = _task_graph_text(text)
     return RunArtifacts(
         root=root,
         text=text,
@@ -144,6 +158,7 @@ def load_run(root: Path) -> RunArtifacts:
         boundary_status=_field(s1_text, "Boundary Status"),
         roles=_parse_role_rows(s1_text),
         matrix_text=_matrix_text(s1_text),
+        task_graph_text=task_graph_text,
     )
 
 
@@ -229,6 +244,104 @@ def validate_run(run: RunArtifacts, stage: str = "all") -> tuple[list[str], list
             if required.lower() not in run.matrix_text.lower():
                 errors.append(f"S1_MATRIX_ACTION_MISSING: `{required}` owner resolution is missing.")
 
+    needs_s3_validation = stage in {"s3", "s7"} or bool(run.s7_text)
+    if not run.task_graph_text:
+        if needs_s3_validation:
+            errors.append("S3_TASK_GRAPH_MISSING: no S3 Task Graph section found.")
+    else:
+        task_rows = []
+        current: dict[str, str] = {}
+        table_headers: list[str] = []
+        saw_task_graph_table = False
+        in_fence = False
+        for raw in run.task_graph_text.splitlines():
+            line = raw.strip()
+            if line.startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence or not line:
+                continue
+            field_match = re.match(r"(?i)^(task|owner|context boundary|depends on|outputs|writable area|validation checkpoint|fallback)\s*:\s*(.*)$", line)
+            if field_match:
+                key = field_match.group(1).strip().lower()
+                value = field_match.group(2).strip()
+                current[key] = value
+                if key == "fallback":
+                    task_rows.append(current)
+                    current = {}
+                continue
+            if "|" in line and "---" not in line:
+                cells = [_clean_cell(c) for c in line.strip("|").split("|")]
+                header_candidates = {"task", "owner", "context boundary", "depends on", "outputs", "writable area", "validation checkpoint", "fallback"}
+                if cells and cells[0].lower() == "task":
+                    table_headers = [cell.lower() for cell in cells]
+                    saw_task_graph_table = True
+                    continue
+                if len(cells) >= 2:
+                    saw_task_graph_table = True
+                    row = {}
+                    if table_headers:
+                        for idx, header in enumerate(table_headers):
+                            if header in header_candidates:
+                                row[header] = cells[idx] if idx < len(cells) else ""
+                    else:
+                        row = {
+                            "task": cells[0],
+                            "owner": cells[1] if len(cells) > 1 else "",
+                            "context boundary": cells[2] if len(cells) > 2 else "",
+                            "depends on": cells[3] if len(cells) > 3 else "",
+                            "outputs": cells[4] if len(cells) > 4 else "",
+                            "writable area": cells[5] if len(cells) > 5 else "",
+                            "validation checkpoint": cells[6] if len(cells) > 6 else "",
+                            "fallback": cells[7] if len(cells) > 7 else "",
+                        }
+                    task_rows.append(row)
+        if current and current not in task_rows:
+            task_rows.append(current)
+
+        if saw_task_graph_table and "validation checkpoint" not in table_headers and not any(
+            "validation checkpoint" in row for row in task_rows
+        ):
+            errors.append("S3_TASK_GRAPH_CHECKPOINT_COLUMN_MISSING: Task Graph implementation table must include a Validation Checkpoint column.")
+        for idx, row in enumerate(task_rows, start=1):
+            if not row.get("owner", "").strip():
+                warnings.append(f"S3_TASK_ROW_OWNER_MISSING: Task Graph row {idx} has no Owner field.")
+            elif _role_key(row.get("owner", "")) not in {"orchestrator", "implementer", "critic", "quality_gate", "runtime_verifier", "advisor", "source_analyst", "workflow_designer", "template_editor", "human_decision_maker"}:
+                warnings.append(
+                    f"S3_TASK_ROW_OWNER_UNRECOGNIZED: Task Graph row `{row.get('task', idx)}` has owner `{row.get('owner')}` that may not map to a known role."
+                )
+
+        implementation_rows = [
+            row for row in task_rows
+            if row.get("owner", "").strip() and _role_key(row.get("owner", "")) == "implementer"
+        ]
+        for idx, row in enumerate(implementation_rows, start=1):
+            task_value = row.get("task", "")
+            if not task_value:
+                errors.append(f"S3_TASK_ROW_MISSING_TASK: implementation node {idx} has no Task field.")
+            task_norm = _norm(task_value)
+            if not task_norm:
+                errors.append(f"S3_TASK_ROW_EMPTY_TASK: implementation node {idx} has an empty Task field.")
+            if not row.get("validation checkpoint", "").strip():
+                errors.append(
+                    f"S3_TASK_ROW_CHECKPOINT_MISSING: implementation node `{task_value or idx}` must define Validation Checkpoint."
+                )
+            if not row.get("writable area", "").strip():
+                errors.append(
+                    f"S3_TASK_ROW_WRITABLE_AREA_MISSING: implementation node `{task_value or idx}` must define Writable Area."
+                )
+            if task_value:
+                behavior_words = re.findall(r"[a-z0-9]+", task_norm)
+                if len(behavior_words) > 14 and not re.search(r"\b(file cluster|cluster|single|one|focused|slice)\b", task_norm):
+                    warnings.append(
+                        f"S3_TASK_ROW_TOO_BROAD: implementation node `{task_value}` looks too broad for one slice; split it before S4."
+                    )
+            checkpoint = row.get("validation checkpoint", "")
+            if checkpoint and not re.search(r"\b(test|lint|typecheck|lsp|log|api|browser|runtime|evidence|probe|smoke|check)\b", checkpoint, re.I):
+                warnings.append(
+                    f"S3_TASK_ROW_WEAK_CHECKPOINT: implementation node `{task_value or idx}` uses a checkpoint that may be too vague."
+                )
+
     if all(role in run.roles for role in required_roles):
         orch = run.roles["orchestrator"]
         impl = run.roles["implementer"]
@@ -280,6 +393,8 @@ def _run_self_tests(script: Path) -> int:
         "tests/fixtures/invalid/same-owner-alias": False,
         "tests/fixtures/invalid/tool-gate-boundary": False,
         "tests/fixtures/invalid/bad-boundary-status": False,
+        "tests/fixtures/invalid/empty-task-checkpoint-cell": False,
+        "tests/fixtures/invalid/missing-task-checkpoint": False,
         "tests/fixtures/valid/single-runbook": True,
         "tests/fixtures/valid/separate-files": True,
     }
@@ -307,7 +422,7 @@ def _run_self_tests(script: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate harness run artifacts.")
     parser.add_argument("run_path", nargs="?", help="Run workspace directory, runbook, or artifact file.")
-    parser.add_argument("--stage", choices=["s1", "s2", "s7", "all"], default="all")
+    parser.add_argument("--stage", choices=["s1", "s2", "s3", "s7", "all"], default="all")
     parser.add_argument("--self-test", action="store_true", help="Run bundled regression fixtures.")
     args = parser.parse_args(argv)
 

@@ -255,6 +255,8 @@ Method:
 - define owner
 - bind delegated context boundaries where delegation is used
 - define named outputs and `Writable Area` for every task
+- split implementation work so each implementation node is one behavior change or one tightly related file cluster
+- define one `Validation Checkpoint` for every implementation node, naming the external signal that proves that slice
 - define termination conditions
 - define human decision points
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
@@ -274,6 +276,8 @@ Acceptance:
 - every delegated `Owner` / `Context Boundary` pair matches the `Role Owner Table`
 - dependencies are clear and there are no responsibility gaps
 - no very long chain is forced into one agent
+- no implementation node hides multiple unrelated behavior changes or file clusters
+- every implementation node has a named `Validation Checkpoint`
 - `Task Graph` and active `Workflow Draft` are written before `S4` starts
 - for any publishable run that imports prior non-publish exploration, `Task Graph` and active `Workflow Draft` are refreshed for the current `Publish` intent and do not reuse exploration records as proof of owner separation, gate coverage, or publish readiness
 
@@ -305,6 +309,8 @@ Method:
 - write intermediate results only to each role's own area
 - use tool calls to obtain external factual feedback instead of text-only reasoning
 - require real state-surface validation for any change whose correctness depends on pre-existing state
+- have implementers execute the assigned Task Graph slice without fusing adjacent slices unless `Orchestrator` refreshes `S3`
+- record each implementation node's `Validation Checkpoint` result in the execution output or runtime evidence
 - `Orchestrator` splits work to subagents when the primary agent's context pressure becomes too high
 
 Outputs:

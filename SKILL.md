@@ -87,6 +87,7 @@ Run workspace posture:
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
 - `Orchestrator` assigns `Runtime Verifier` or records why no verifier is required for any change that depends on pre-existing state.
 - If a single agent is nearing context overload, `Orchestrator` splits work into subagents or smaller owned tasks.
+- For `Lite` and `Full`, `Orchestrator` slices implementation work in `S3` before handing it to `Implementer`: each implementation node is one behavior change or one tightly related file cluster, and each has a named `Validation Checkpoint`.
 - When delegation is required, `Orchestrator` ensures the work crosses independent context boundaries; do not simulate separation with different role labels inside one context.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
@@ -174,6 +175,7 @@ Lite:
 - one run-specific responsibility matrix
 - one `Context Pack`
 - one `Task Graph`
+- one `Validation Checkpoint` per implementation node in `Task Graph`
 - step-closure records for `S0`, `S1`, `S2`, and `S3` before the next step starts
 - one `Execution Output Record`
 - one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation

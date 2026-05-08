@@ -204,12 +204,16 @@ Context Boundary:
 Depends On:
 Outputs:
 Writable Area:
+Validation Checkpoint:
 Fallback:
 ```
 
 Field notes:
 - when delegation is used, the `Owner` / `Context Boundary` pair must match an existing row in the `Role Owner Table`
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this field
+- every implementation node must be sliced to one behavior change or one tightly related file cluster; if one node needs multiple behavioral changes across unrelated areas, split it before `S4`
+- every implementation node must include `Validation Checkpoint`, naming the cheapest external signal that can prove that slice, such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record
+- `Validation Checkpoint` is execution evidence for `S4` and later `S7`; it is not a second gate verdict and must not replace `Gate Decision`
 
 ### `Workflow Draft`
 
