@@ -26,7 +26,10 @@ Prefer tools and external feedback to establish factual anchors. Do not rely onl
 Reuse stable prefixes and existing rules whenever possible. Avoid repeatedly rewriting core instructions.
 For Ultra Lite, the single Owner writes the goal/scope block and completes `Preflight Judgment` before task-specific execution; escalate before execution if durable process records, multiple owners, a formal gate, or multiple validation signals are needed.
 For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, writes both Role Owner Table and Run-Specific Responsibility Matrix during S1 before S2, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
+For Lite and Full, Orchestrator maintains `CURRENT.md` plus append-only continuation checkpoints under `checkpoints/`; create the first checkpoint before S1 validation and refresh it at S1, S3, S5, and S7.
 For Lite and Full, Orchestrator runs `python scripts/validate_harness_run.py <run-workspace>` at S1 closure / S2 entry. If it fails, return to S1 before task-specific downstream work.
+After auto compact, thread copy, or resume, read `CURRENT.md`, open the latest checkpoint, re-run `validate_harness_run.py <run-workspace>`, and continue from `Remaining Checklist` rather than the compacted summary alone.
+Keep mainline context to decisions and pointers; put large outputs and raw evidence in run-workspace artifacts referenced by path and locator.
 Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the S1 Run-Specific Responsibility Matrix first, then the canonical Responsibility Matrix in artifact-registry.md, or ask Orchestrator to assign one.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
@@ -54,11 +57,12 @@ Tasks:
 5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
 6. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
 7. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
-8. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
-9. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
-10. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
-11. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
-12. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
+8. Maintain `CURRENT.md` and append-only continuation checkpoints; refresh before closing S1, S3, S5, and S7, and before/after delegated work that crosses a new independent context boundary when feasible.
+9. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
+10. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
+11. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
+12. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+13. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
@@ -220,6 +224,7 @@ Also check:
 - whether the tier-appropriate `Run Workspace` was declared before S0
 - whether S0 through S3 step-closure artifacts were written and field-valid before the next step started
 - whether `validate_harness_run.py <run-workspace>` passed before S2 and before the current gate verdict
+- whether `CURRENT.md` points to the latest field-valid continuation checkpoint
 - whether S1 includes a field-valid `Run-Specific Responsibility Matrix` resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
@@ -278,21 +283,22 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
+3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint, declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
 5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
 6. S4 Implementer executes and produces Execution Output Record
 7. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 8. S5 Critic produces Risk Register
-9. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
-10. S7 Quality Gate re-runs `validate_harness_run.py` and returns `Pass / Conditional Pass / Fail`
-11. S7 Orchestrator appends the gate outcome to `Decision Log`
-12. S8 Orchestrator verifies required artifacts before publish
+9. S5 Orchestrator refreshes the continuation checkpoint before gate review
+10. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
+11. S7 Quality Gate re-runs `validate_harness_run.py` and returns `Pass / Conditional Pass / Fail`
+12. S7 Orchestrator appends the gate outcome to `Decision Log` and refreshes the continuation checkpoint
+13. S8 Orchestrator verifies required artifacts before publish
 
 Full:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator declares publish intent or non-publish exploration and produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, Run-Specific Responsibility Matrix, boundary status, delegation posture, and the required independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries and S6/S7/S8 ownership is resolved
+3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint, declares publish intent or non-publish exploration, and produces Execution Environment Spec formalizing Run Workspace, Role Owner Table, Run-Specific Responsibility Matrix, boundary status, delegation posture, continuation packet location, and the required independent context boundaries; apply the `External-Critic-Only Quality Gate Rule` when needed; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries and S6/S7/S8 ownership is resolved
 4. S2 Orchestrator produces Context Pack
 5. S2 Source Analyst produces Claims List / Evidence Map
 6. S2 Principle Mapper produces Principle Set; do not enter S3 until required S2 artifacts are written

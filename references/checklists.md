@@ -14,7 +14,9 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] `Ultra Lite` has a filled goal/scope block before execution, or the run has escalated
 - [ ] `Ultra Lite` single `Owner` completed `Preflight Judgment` before execution, including validation path, executable-now status, validation-failure action, and escalation decision
 - [ ] `Lite` and `Full` `Orchestrator` declared and validated a `Run Workspace` before `S0`
+- [ ] `Lite` and `Full` created `CURRENT.md` plus append-only continuation checkpoints before `S1` validation
 - [ ] `Lite` and `Full` `Orchestrator` enforced `S0`, `S1`, `S2`, and `S3` step-closure artifacts before the next step started
+- [ ] `S1`, `S3`, `S5`, and `S7` checkpoints exist when those steps have been reached, each with incremented `Checkpoint Seq`
 - [ ] any equivalent artifact location has an owner, is writable, accessible, and explicitly declared
 - [ ] every concrete workflow action has an owner, using the `Responsibility Matrix` in `artifact-registry.md` when ownership is not otherwise explicit
 - [ ] `Lite` and `Full` wrote a `Run-Specific Responsibility Matrix` during `S1` before `S2`
@@ -37,6 +39,7 @@ Other files should reference these gates by name instead of redefining them.
 - `Conditional Pass`: no blocking gate fails, but at least one non-blocking gap must be closed in a named follow-up step.
 - `Fail`: any blocking gate fails, any required artifact is missing, or the workflow relies on model self-certification for a material claim.
 - Use `Fail` for any `Lite` or `Full` run if the required `Run Workspace` was not declared before `S0`, or if `S0` through `S3` step-closure artifacts were created only after the next step or task-specific execution had already started.
+- Use `Fail` for any `Lite` or `Full` run if `CURRENT.md` or the latest continuation checkpoint is missing, field-invalid, not reachable, or points to a different active run workspace.
 - Use `Fail` for any `Lite` or `Full` run if `python scripts/validate_harness_run.py <run-workspace>` was not run successfully at `S1` closure / `S2` entry before task-specific downstream work.
 - Use `Fail` for any publishable `Lite` or `Full` run that imports or continues from non-publish exploration if `S0` did not record the imported material as evidence or context only, or if `S0` through `S3` were not re-closed under current `Publish` intent before task-specific execution.
 - Use `Fail` for any `Lite` or `Full` run if the `Run-Specific Responsibility Matrix` was not written during `S1` before `S2`, or if phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, or submit ownership cannot be resolved from that matrix or the canonical defaults.
@@ -115,6 +118,8 @@ This file is canonical for gate verdict rules and replay semantics.
 
 - [ ] roles are not overlapping excessively
 - [ ] `Lite` and `Full` declared a `Run Workspace` before `S0`
+- [ ] `CURRENT.md` points to the latest continuation checkpoint in the active run workspace
+- [ ] continuation checkpoints cover `S1`, `S3`, `S5`, and `S7` when those steps have been reached
 - [ ] `S0`, `S1`, `S2`, and `S3` step-closure gates succeeded before the next step began
 - [ ] `Orchestrator` enforced step-closure gates and returned to the failed step on missing or field-invalid artifacts
 - [ ] `validate_harness_run.py <run-workspace>` passed at `S1` closure / `S2` entry, and again before any `S7` publish/pass/readiness verdict
@@ -152,6 +157,7 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Ultra Lite` has the short goal/scope block and complete `Preflight Judgment` before execution, or has escalated to `Lite`
 - [ ] `Lite` has `Run Workspace` before `S0`, `Task Brief` and initial `Decision Log` before `S1`, role owner table and run-specific responsibility matrix before `S2`, `Context Pack` before `S3`, and `Task Graph` before `S4`
 - [ ] `Full` has `Run Workspace` before `S0`, `Task Brief` before `S1`, `Execution Environment Spec`, role owner table, and run-specific responsibility matrix before `S2`, `Context Pack` before `S3`, and `Task Graph` plus active `Workflow Draft` before `S4`
+- [ ] `Lite` and `Full` have a field-valid latest `Continuation Packet`
 - [ ] each step has inputs
 - [ ] each step has outputs
 - [ ] each step has acceptance criteria
@@ -179,6 +185,8 @@ This file is canonical for gate verdict rules and replay semantics.
 
 - [ ] stable prefixes are not rewritten without need
 - [ ] long history is summarized
+- [ ] mainline keeps decisions and evidence pointers instead of pasted bulky output
+- [ ] context-pressure or auto-compact signals caused an early continuation checkpoint or split
 - [ ] subagents are introduced before context overload
 - [ ] drift cleanup is part of the workflow
 

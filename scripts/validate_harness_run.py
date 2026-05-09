@@ -33,6 +33,45 @@ LOCAL_ONLY_RE = re.compile(
     r"implementation is still local|no publish owner|not publish-ready|non-publish)\b",
     re.I,
 )
+FIELD_LINE_RE = re.compile(r"^\s*([A-Za-z][A-Za-z0-9 /-]*?)\s*:\s*(.*)\s*$")
+STEP_RE = re.compile(r"\bS[0-8]\b", re.I)
+CHECKPOINT_STEP_ORDER = ["S1", "S3", "S5", "S7"]
+CHECKPOINT_REQUIRED_FIELDS = [
+    "Run ID",
+    "Active Run Workspace Path",
+    "Current Step",
+    "Last Completed Step",
+    "Checkpoint Seq",
+    "Last Updated",
+    "Completed Checklist",
+    "Remaining Checklist",
+    "Inflight Delegations",
+    "Next Action",
+    "Blockers",
+    "Evidence Pointers",
+]
+CHECKPOINT_ALLOW_NONE_FIELDS = {"Inflight Delegations", "Blockers"}
+PATH_TOKEN_RE = re.compile(
+    r"(?i)(?:[A-Za-z]:[\\/])?(?:[\w.-]+[\\/])+[\w.@-]+|[\w.@-]+\.(?:md|txt|jsonl?|py|ya?ml|tsx?|jsx?|css|html|log|patch)"
+)
+LOCATOR_TOKEN_RE = re.compile(r"(?i)(:\d+|#[\w.-]+|@[0-9a-f]{7,40}|\bcommit\s+[0-9a-f]{7,40}\b|\bartifact\s*:)")
+CONTEXT_PRESSURE_RE = re.compile(r"(?i)\b(auto[- ]?compact|compacted|context pressure|context overload|token pressure)\b")
+
+
+@dataclass
+class MarkdownDoc:
+    path: Path
+    rel: str
+    text: str
+
+
+@dataclass
+class ContinuationCheckpoint:
+    path: Path
+    rel: str
+    text: str
+    fields: dict[str, str]
+    seq: int | None
 
 
 @dataclass
@@ -47,6 +86,7 @@ class RoleRow:
 @dataclass
 class RunArtifacts:
     root: Path
+    docs: list[MarkdownDoc]
     text: str
     s1_text: str
     s7_text: str
@@ -55,18 +95,28 @@ class RunArtifacts:
     boundary_status: str
     roles: dict[str, RoleRow]
     matrix_text: str
+    checkpoints: list[ContinuationCheckpoint]
+    current_pointer: str
+    checkpoint_errors: list[str]
 
 
-def _read_markdown(root: Path) -> str:
+def _read_markdown_docs(root: Path) -> list[MarkdownDoc]:
     if root.is_file():
-        return f"\n\n<!-- FILE: {root.name} -->\n" + root.read_text(encoding="utf-8")
+        return [MarkdownDoc(path=root, rel=root.name, text=root.read_text(encoding="utf-8"))]
     if not root.exists():
         raise FileNotFoundError(root)
-    parts: list[str] = []
+    docs: list[MarkdownDoc] = []
     for path in sorted(root.rglob("*.md")):
         rel = path.relative_to(root).as_posix()
-        parts.append(f"\n\n<!-- FILE: {rel} -->\n")
-        parts.append(path.read_text(encoding="utf-8"))
+        docs.append(MarkdownDoc(path=path, rel=rel, text=path.read_text(encoding="utf-8")))
+    return docs
+
+
+def _join_markdown(docs: list[MarkdownDoc]) -> str:
+    parts: list[str] = []
+    for doc in docs:
+        parts.append(f"\n\n<!-- FILE: {doc.rel} -->\n")
+        parts.append(doc.text)
     return "".join(parts)
 
 
@@ -81,6 +131,99 @@ def _section(text: str, step: str) -> str:
 def _field(text: str, name: str) -> str:
     match = re.search(rf"(?im)^\s*{re.escape(name)}\s*:\s*(.+?)\s*$", text)
     return match.group(1).strip() if match else ""
+
+
+def _parse_fields(text: str) -> dict[str, str]:
+    fields: dict[str, list[str]] = {}
+    current: str | None = None
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        match = FIELD_LINE_RE.match(line)
+        if match and "|" not in line:
+            current = _clean_cell(match.group(1))
+            fields.setdefault(current, [])
+            value = match.group(2).strip()
+            if value:
+                fields[current].append(value)
+            continue
+        if current and line.strip() and not line.lstrip().startswith("#"):
+            fields[current].append(line.strip())
+    return {name: "\n".join(values).strip() for name, values in fields.items()}
+
+
+def _strip_pointer(value: str) -> str:
+    for raw in value.splitlines():
+        line = raw.strip().lstrip("-").strip()
+        if not line:
+            continue
+        backtick = re.search(r"`([^`]+)`", line)
+        if backtick:
+            return backtick.group(1).strip()
+        return line.strip("<>")
+    return ""
+
+
+def _checkpoint_section(text: str) -> str:
+    match = re.search(
+        r"(?ims)^#{1,4}\s*(?:Continuation Packet|Continuation Checkpoint|Checkpoint Packet)\b.*?(?=^#{1,4}\s|\Z)",
+        text,
+    )
+    return match.group(0) if match else text
+
+
+def _load_checkpoint_file(path: Path, rel: str) -> ContinuationCheckpoint:
+    text = path.read_text(encoding="utf-8")
+    checkpoint_text = _checkpoint_section(text)
+    fields = _parse_fields(checkpoint_text)
+    seq = _parse_int(fields.get("Checkpoint Seq", ""))
+    return ContinuationCheckpoint(path=path, rel=rel, text=checkpoint_text, fields=fields, seq=seq)
+
+
+def _parse_int(value: str) -> int | None:
+    match = re.search(r"\d+", value or "")
+    return int(match.group(0)) if match else None
+
+
+def _load_checkpoints(root: Path, docs: list[MarkdownDoc]) -> tuple[list[ContinuationCheckpoint], str, list[str]]:
+    errors: list[str] = []
+    if root.is_file():
+        section = _checkpoint_section(docs[0].text)
+        if section == docs[0].text and not re.search(r"(?im)^\s*Checkpoint Seq\s*:", section):
+            return [], "", ["CONTINUATION_PACKET_MISSING: no Continuation Packet section found."]
+        fields = _parse_fields(section)
+        return [ContinuationCheckpoint(path=root, rel=root.name, text=section, fields=fields, seq=_parse_int(fields.get("Checkpoint Seq", "")))], root.name, errors
+
+    current_path = root / "CURRENT.md"
+    if not current_path.exists():
+        return [], "", ["CONTINUATION_CURRENT_MISSING: Lite/Full run workspace must contain CURRENT.md."]
+
+    current_text = current_path.read_text(encoding="utf-8")
+    current_fields = _parse_fields(current_text)
+    pointer = _strip_pointer(
+        current_fields.get("Current Checkpoint", "")
+        or current_fields.get("Latest Checkpoint", "")
+        or current_text
+    )
+    if not pointer:
+        errors.append("CONTINUATION_CURRENT_POINTER_MISSING: CURRENT.md must point to the latest checkpoint.")
+        return [], "", errors
+    if Path(pointer).is_absolute():
+        errors.append("CONTINUATION_CURRENT_POINTER_ABSOLUTE: CURRENT.md must use a run-workspace-relative path.")
+        return [], pointer, errors
+
+    checkpoint_paths: dict[Path, str] = {}
+    checkpoint_dir = root / "checkpoints"
+    if checkpoint_dir.exists():
+        for path in sorted(checkpoint_dir.glob("*.md")):
+            checkpoint_paths[path.resolve()] = path.relative_to(root).as_posix()
+    pointed = (root / pointer).resolve()
+    if not pointed.exists():
+        errors.append(f"CONTINUATION_CURRENT_TARGET_MISSING: CURRENT.md points to `{pointer}`, but that file does not exist.")
+    elif pointed.suffix.lower() == ".md":
+        checkpoint_paths[pointed] = pointer.replace("\\", "/")
+
+    checkpoints = [_load_checkpoint_file(path, rel) for path, rel in sorted(checkpoint_paths.items(), key=lambda item: item[1])]
+    return checkpoints, pointer.replace("\\", "/"), errors
 
 
 def _clean_cell(cell: str) -> str:
@@ -130,12 +273,15 @@ def _matrix_text(s1_text: str) -> str:
 
 
 def load_run(root: Path) -> RunArtifacts:
-    text = _read_markdown(root)
+    docs = _read_markdown_docs(root)
+    text = _join_markdown(docs)
     s1_text = _section(text, "S1")
     s7_text = _section(text, "S7")
     s8_text = _section(text, "S8")
+    checkpoints, current_pointer, checkpoint_errors = _load_checkpoints(root, docs)
     return RunArtifacts(
         root=root,
+        docs=docs,
         text=text,
         s1_text=s1_text,
         s7_text=s7_text,
@@ -144,6 +290,9 @@ def load_run(root: Path) -> RunArtifacts:
         boundary_status=_field(s1_text, "Boundary Status"),
         roles=_parse_role_rows(s1_text),
         matrix_text=_matrix_text(s1_text),
+        checkpoints=checkpoints,
+        current_pointer=current_pointer,
+        checkpoint_errors=checkpoint_errors,
     )
 
 
@@ -180,6 +329,189 @@ def _has_publish_claim(text: str) -> bool:
     return False
 
 
+def _field_empty(value: str, allow_none: bool = False) -> bool:
+    stripped = re.sub(r"\s+", " ", value or "").strip()
+    if not stripped:
+        return True
+    lowered = stripped.lower()
+    if allow_none and lowered in {"none", "n/a", "na"}:
+        return False
+    return bool(re.fullmatch(r"(<[^>]+>|tbd|todo|unknown|-|n/a|na)", lowered, re.I))
+
+
+def _root_matches_checkpoint_path(root: Path, value: str) -> bool:
+    raw = _strip_pointer(value)
+    if not raw or re.fullmatch(r"<[^>]+>", raw):
+        return False
+    normalized_root = root.resolve().as_posix().rstrip("/").lower()
+    normalized_value = raw.replace("\\", "/").rstrip("/").lower()
+    if Path(raw).is_absolute():
+        return Path(raw).resolve().as_posix().rstrip("/").lower() == normalized_root
+    return normalized_root == normalized_value or normalized_root.endswith("/" + normalized_value)
+
+
+def _checkpoint_mentions_step(checkpoint: ContinuationCheckpoint, step: str) -> bool:
+    step = step.upper()
+    values = " ".join(
+        [
+            checkpoint.fields.get("Current Step", ""),
+            checkpoint.fields.get("Last Completed Step", ""),
+            checkpoint.fields.get("Completed Checklist", ""),
+            checkpoint.fields.get("Remaining Checklist", ""),
+            checkpoint.rel,
+        ]
+    )
+    return bool(re.search(rf"\b{step}\b", values, re.I))
+
+
+def _latest_checkpoint(run: RunArtifacts) -> ContinuationCheckpoint | None:
+    if not run.checkpoints:
+        return None
+    if run.current_pointer:
+        for checkpoint in run.checkpoints:
+            if checkpoint.rel.replace("\\", "/") == run.current_pointer:
+                return checkpoint
+    checkpoints_with_seq = [checkpoint for checkpoint in run.checkpoints if checkpoint.seq is not None]
+    if checkpoints_with_seq:
+        return max(checkpoints_with_seq, key=lambda checkpoint: checkpoint.seq or -1)
+    return run.checkpoints[-1]
+
+
+def _validate_continuation(run: RunArtifacts, stage: str) -> tuple[list[str], list[str]]:
+    errors: list[str] = list(run.checkpoint_errors)
+    warnings: list[str] = []
+
+    if not run.checkpoints:
+        errors.append("CONTINUATION_PACKET_MISSING: Lite/Full runs must provide an append-only continuation checkpoint.")
+        return errors, warnings
+
+    latest = _latest_checkpoint(run)
+    if latest is None:
+        errors.append("CONTINUATION_PACKET_MISSING: no readable continuation checkpoint found.")
+        return errors, warnings
+
+    expected_stage = _expected_checkpoint_stage(stage)
+    if expected_stage and not _checkpoint_mentions_step(latest, expected_stage):
+        errors.append(
+            f"CONTINUATION_STAGE_MISMATCH: latest checkpoint must reflect `{expected_stage}` for `--stage {stage}`."
+        )
+
+    fields = latest.fields
+    for field in CHECKPOINT_REQUIRED_FIELDS:
+        if field not in fields:
+            errors.append(f"CONTINUATION_FIELD_MISSING: `{field}` is required in the latest checkpoint.")
+        elif _field_empty(fields[field], allow_none=field in CHECKPOINT_ALLOW_NONE_FIELDS):
+            errors.append(f"CONTINUATION_FIELD_EMPTY: `{field}` must contain run-specific recovery data.")
+
+    if "Active Run Workspace Path" in fields and not _root_matches_checkpoint_path(run.root, fields["Active Run Workspace Path"]):
+        errors.append(
+            "CONTINUATION_WORKSPACE_MISMATCH: `Active Run Workspace Path` does not match the validated run path."
+        )
+
+    for field in ["Current Step", "Last Completed Step"]:
+        if field in fields and fields[field] and not STEP_RE.search(fields[field]):
+            errors.append(f"CONTINUATION_STEP_INVALID: `{field}` must identify an S0-S8 step.")
+
+    if "Checkpoint Seq" in fields and latest.seq is None:
+        errors.append("CONTINUATION_SEQ_INVALID: `Checkpoint Seq` must contain an integer.")
+    if "Last Updated" in fields and fields["Last Updated"] and not re.search(r"\d{4}-\d{2}-\d{2}", fields["Last Updated"]):
+        errors.append("CONTINUATION_LAST_UPDATED_INVALID: `Last Updated` must include an ISO-like date.")
+
+    seqs = [checkpoint.seq for checkpoint in run.checkpoints]
+    if any(seq is None for seq in seqs):
+        errors.append("CONTINUATION_SEQ_MISSING: every checkpoint file must include `Checkpoint Seq`.")
+    numeric_seqs = [seq for seq in seqs if seq is not None]
+    if len(numeric_seqs) != len(set(numeric_seqs)):
+        errors.append("CONTINUATION_SEQ_DUPLICATE: checkpoint sequence numbers must be unique.")
+    if numeric_seqs and numeric_seqs != sorted(numeric_seqs):
+        errors.append("CONTINUATION_SEQ_NOT_MONOTONIC: checkpoint sequence numbers must increase in file order.")
+    if numeric_seqs and latest.seq != max(numeric_seqs):
+        errors.append("CONTINUATION_CURRENT_NOT_LATEST: CURRENT.md must point to the highest checkpoint sequence.")
+
+    required_steps = _required_checkpoint_steps(latest, stage)
+    for step in required_steps:
+        if not any(_checkpoint_mentions_step(checkpoint, step) for checkpoint in run.checkpoints):
+            errors.append(f"CONTINUATION_STEP_CHECKPOINT_MISSING: no checkpoint records `{step}`.")
+
+    evidence = fields.get("Evidence Pointers", "")
+    if evidence and not _has_actionable_evidence_pointer(evidence):
+        warnings.append(
+            "EVIDENCE_POINTER_VAGUE: `Evidence Pointers` should include a path plus a locator such as line, anchor, artifact name, or commit SHA."
+        )
+
+    if _is_publish_intent(run.publish_intent) and re.search(r"(?i)\bnon-publish exploration\b", latest.text):
+        errors.append(
+            "CONTINUATION_INHERITED_NONPUBLISH: latest checkpoint still describes non-publish exploration in a publish run."
+        )
+
+    pressure_signal = fields.get("Context Pressure Signal", "")
+    if (CONTEXT_PRESSURE_RE.search(run.text) or len(run.text) > 70000) and _field_empty(pressure_signal, allow_none=True):
+        warnings.append(
+            "CONTEXT_PRESSURE_SIGNAL_MISSING: context pressure is visible, but the latest checkpoint lacks `Context Pressure Signal`."
+        )
+
+    return errors, warnings
+
+
+def _expected_checkpoint_stage(stage: str) -> str | None:
+    normalized = stage.lower()
+    if normalized in {"s1", "s2"}:
+        return "S1"
+    if normalized == "s7":
+        return "S7"
+    return None
+
+
+def _required_checkpoint_steps(latest: ContinuationCheckpoint, stage: str) -> list[str]:
+    if stage in {"s1", "s2"}:
+        return ["S1"]
+    if stage == "s7":
+        return CHECKPOINT_STEP_ORDER.copy()
+
+    state_text = " ".join(
+        [
+            latest.fields.get("Current Step", ""),
+            latest.fields.get("Last Completed Step", ""),
+            latest.fields.get("Completed Checklist", ""),
+            latest.fields.get("Remaining Checklist", ""),
+        ]
+    )
+    required: list[str] = []
+    for step in CHECKPOINT_STEP_ORDER:
+        if re.search(rf"\b{step}\b", state_text, re.I):
+            required.append(step)
+    return required or ["S1"]
+
+
+def _has_actionable_evidence_pointer(value: str) -> bool:
+    for raw in value.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if PATH_TOKEN_RE.search(line) and LOCATOR_TOKEN_RE.search(line):
+            return True
+    return False
+
+
+def _validate_pointer_discipline(run: RunArtifacts) -> list[str]:
+    warnings: list[str] = []
+    for doc in run.docs:
+        rel = doc.rel.replace("\\", "/")
+        if rel == "CURRENT.md" or rel.startswith("checkpoints/"):
+            continue
+        if len(doc.text) > 80000:
+            warnings.append(
+                f"MAINLINE_POINTER_DISCIPLINE: `{rel}` is very large; keep mainline artifacts to decisions plus pointers and move bulky evidence into run-workspace artifacts."
+            )
+            break
+        if any(len(line) > 4000 for line in doc.text.splitlines()):
+            warnings.append(
+                f"MAINLINE_POINTER_DISCIPLINE: `{rel}` contains very long lines; prefer artifact pointers over pasted tool output."
+            )
+            break
+    return warnings
+
+
 def validate_run(run: RunArtifacts, stage: str = "all") -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -187,6 +519,11 @@ def validate_run(run: RunArtifacts, stage: str = "all") -> tuple[list[str], list
     if not run.s1_text:
         errors.append("S1_MISSING: no S1 Role Owner Table section found.")
         return errors, warnings
+
+    continuation_errors, continuation_warnings = _validate_continuation(run, stage)
+    errors.extend(continuation_errors)
+    warnings.extend(continuation_warnings)
+    warnings.extend(_validate_pointer_discipline(run))
 
     required_roles = ["orchestrator", "implementer", "quality_gate"]
     for role in required_roles:
@@ -276,8 +613,10 @@ def _run_self_tests(script: Path) -> int:
     cases = {
         "tests/fixtures/invalid/corpview-regression": False,
         "tests/fixtures/invalid/missing-intent-publish-s7": False,
+        "tests/fixtures/invalid/missing-continuation-current": False,
         "tests/fixtures/invalid/nonpublish-publish-s7": False,
         "tests/fixtures/invalid/same-owner-alias": False,
+        "tests/fixtures/invalid/stale-continuation-current": False,
         "tests/fixtures/invalid/tool-gate-boundary": False,
         "tests/fixtures/invalid/bad-boundary-status": False,
         "tests/fixtures/valid/single-runbook": True,

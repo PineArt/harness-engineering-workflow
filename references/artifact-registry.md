@@ -11,6 +11,7 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 | `Task Brief` | `Orchestrator` | `S0` | `Lite`, `Full` |
 | `Role Owner Table` | `Orchestrator` | `S1` | `Lite`, `Full` |
 | `Run-Specific Responsibility Matrix` | `Orchestrator` | `S1` | `Lite`, `Full` |
+| `Continuation Packet` | `Orchestrator` | `S0`, then checkpoint boundaries | `Lite`, `Full` |
 | `Execution Environment Spec` | `Orchestrator` | `S1` | `Full` |
 | `Context Pack` | `Orchestrator` | `S2` | `Lite`, `Full` |
 | `Task Graph` | `Orchestrator` | `S3` | `Lite`, `Full` |
@@ -30,6 +31,7 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 ## Run Workspace Contract
 
 `Run Workspace` is the durable place where process artifacts for one run are written.
+It must also contain the recoverable continuation state for `Lite` and `Full` runs.
 
 Owner:
 `Orchestrator` owns `Run Workspace` declaration, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement for `Lite` and `Full`.
@@ -39,6 +41,13 @@ Default path:
 
 ```text
 exec-plans/active/YYYY-MM-DD-<slug>/
+```
+
+Continuation packet location:
+
+```text
+CURRENT.md
+checkpoints/NNNN-S<step>.md
 ```
 
 Default completion path:
@@ -64,8 +73,11 @@ Rules:
 - `Ultra Lite` does not require a durable `Run Workspace` by default, but the short goal/scope block and `Preflight Judgment` must exist before editing or execution starts.
 - `Ultra Lite` `Preflight Judgment` must state whether the task is still Ultra Lite, why, the concrete validation path, whether that path is executable now, the validation-failure action, and whether to escalate before execution.
 - `Lite` and `Full` runs must declare a `Run Workspace` immediately after tier selection and before `S0`.
+- `Lite` and `Full` runs must create an append-only `Continuation Packet` before `S1` validation runs. `CURRENT.md` points to the latest file under `checkpoints/`.
 - `Full` runs must also formalize the `Run Workspace` during `S1` in `Execution Environment Spec`.
 - every required artifact for `S0`, `S1`, `S2`, and `S3` must be written and field-valid before the workflow enters the next step.
+- `S1`, `S3`, `S5`, and `S7` close only after a fresh continuation checkpoint is written with an incremented `Checkpoint Seq`.
+- Before and after delegated work that crosses a new independent `Context Boundary`, `Orchestrator` refreshes the continuation checkpoint or records why no refresh was needed.
 - `S4` may assert that the earlier step-closure gates were satisfied, but it must not be the first point where missing pre-execution artifacts are discovered.
 - exception paths must be declared in `Task Graph` `Writable Area`; in `Full`, also declare them in `Execution Environment Spec` `Artifact Locations`.
 
@@ -75,6 +87,7 @@ Rules:
 - path fields are syntactically valid for the current workspace
 - owner, artifact, action, and writable-area references agree with the current `Role Owner Table`, `Run-Specific Responsibility Matrix`, and `Task Graph`
 - for `Lite` and `Full` S1 closure or S2 entry, `python scripts/validate_harness_run.py <run-workspace>` passes against the current run artifacts
+- for `Lite` and `Full`, the latest continuation checkpoint is present, field-valid, points at the active run workspace, and is reachable through `CURRENT.md`
 
 If field validation fails, the current step does not close.
 
@@ -94,6 +107,7 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Fast Tier Check and initial tier choice | acting `Orchestrator`; in `Ultra Lite`, the single `Owner` until escalation | `Preflight Judgment` for `Ultra Lite`; `Decision Log` for `Lite` / `Full` |
 | `Ultra Lite` goal/scope, preflight, execution, validation, retry, or escalation | single `Owner` | goal/scope block and `Preflight Judgment` |
 | `Run Workspace`, artifact index, equivalent-location approval, and step-closure gates | `Orchestrator` | `Run Workspace` and `Decision Log` when a closure fails |
+| Continuation packet checkpoints and `CURRENT.md` pointer refresh | `Orchestrator` | `Continuation Packet` |
 | Role assignment, owner separation, and independent context-boundary requests | `Orchestrator` | `Role Owner Table` and `Task Graph` |
 | Applying `External-Critic-Only Quality Gate Rule` | `Orchestrator` | `Role Owner Table` notes and `Decision Log` |
 | Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
@@ -143,6 +157,52 @@ Field notes:
 - if the run cannot resolve a phase-critical action during S1, S1 does not close.
 
 ## Minimum Schemas
+
+### `Continuation Packet`
+
+`Continuation Packet` is the recovery baseline for auto compact, thread copy, or resumed execution. It is append-only:
+
+```text
+CURRENT.md
+checkpoints/0001-S1.md
+checkpoints/0002-S3.md
+checkpoints/0003-S5.md
+checkpoints/0004-S7.md
+```
+
+`CURRENT.md` must contain a run-workspace-relative pointer:
+
+```text
+Current Checkpoint: checkpoints/0001-S1.md
+```
+
+Each checkpoint file uses this schema:
+
+```text
+Run ID:
+Active Run Workspace Path:
+Current Step:
+Last Completed Step:
+Checkpoint Seq:
+Last Updated:
+Completed Checklist:
+Remaining Checklist:
+Inflight Delegations:
+Next Action:
+Blockers:
+Evidence Pointers:
+Context Pressure Signal:
+```
+
+Field notes:
+- `Active Run Workspace Path` must identify the same run workspace being validated.
+- `Checkpoint Seq` is a monotonically increasing integer across checkpoint files.
+- `Last Updated` must include an ISO-like date.
+- `Completed Checklist` and `Remaining Checklist` must make recovery possible without relying on a compacted chat summary.
+- `Inflight Delegations` should use rows like `Owner | Context Boundary | Task | Expected Output | Due`; use `None` only when no delegated task is active.
+- `Evidence Pointers` should include path plus locator, such as line number, heading anchor, artifact name, or commit SHA.
+- `Context Pressure Signal` is warning-only telemetry for context pressure, auto compact, or overload risk.
+- When a run flips from `Non-publish exploration` to `Publish`, the latest checkpoint must be refreshed under the current publish intent and must not carry prior exploration state as closure evidence.
 
 ### `Task Brief`
 
