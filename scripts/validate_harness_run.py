@@ -62,8 +62,9 @@ CHECKPOINT_REQUIRED_FIELDS = [
     "Next Action",
     "Blockers",
     "Evidence Pointers",
+    "Context Pressure Signal",
 ]
-CHECKPOINT_ALLOW_NONE_FIELDS = {"Inflight Delegations", "Blockers"}
+CHECKPOINT_ALLOW_NONE_FIELDS = {"Inflight Delegations", "Blockers", "Context Pressure Signal"}
 PATH_TOKEN_RE = re.compile(
     r"(?i)(?:[A-Za-z]:[\\/])?(?:[\w.-]+[\\/])+[\w.@-]+|[\w.@-]+\.(?:md|txt|jsonl?|py|ya?ml|tsx?|jsx?|css|html|log|patch)"
 )
@@ -622,6 +623,8 @@ def _expected_checkpoint_stage(stage: str) -> str | None:
     normalized = stage.lower()
     if normalized in {"s1", "s2"}:
         return "S1"
+    if normalized == "s3":
+        return "S3"
     if normalized == "s7":
         return "S7"
     return None
