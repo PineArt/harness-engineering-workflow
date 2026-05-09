@@ -1,5 +1,7 @@
 # Tool Gate Boundary
 
+Telemetry Mode: Off
+
 ## S1 Role Owner Table
 
 Publish Intent: Publish

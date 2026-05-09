@@ -1,5 +1,7 @@
 # Nonpublish With Publish Gate
 
+Telemetry Mode: Off
+
 ## S1 Role Owner Table
 
 Publish Intent: Non-publish exploration

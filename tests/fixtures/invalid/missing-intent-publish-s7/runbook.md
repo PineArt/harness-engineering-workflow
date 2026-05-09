@@ -1,5 +1,7 @@
 # Missing Intent Publish Gate
 
+Telemetry Mode: Off
+
 ## S1 Role Owner Table
 
 Boundary Status: Satisfied

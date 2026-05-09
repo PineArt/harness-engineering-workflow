@@ -3,6 +3,7 @@
 Run ID: 2026-05-02-harness-artifact-validator
 Tier: Lite
 Run Workspace: `exec-plans/active/2026-05-02-harness-artifact-validator/`
+Telemetry Mode: Off
 
 ## S0 Task Brief
 

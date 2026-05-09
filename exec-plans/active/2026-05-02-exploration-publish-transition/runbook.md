@@ -1,5 +1,7 @@
 # Exploration To Publish Transition Guardrail
 
+Telemetry Mode: Off
+
 ## S0 Task Brief
 
 Run Workspace: `exec-plans/active/2026-05-02-exploration-publish-transition/`

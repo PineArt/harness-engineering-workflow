@@ -1,6 +1,8 @@
-# Valid Single Runbook
+# Valid Telemetry On Minimal
 
-Telemetry Mode: Off
+Run ID: telemetry-on-minimal
+Telemetry Mode: On
+Event Log Path: <run-workspace>/telemetry.jsonl
 
 ## S1 Role Owner Table
 
@@ -21,17 +23,13 @@ Phase-Critical Action | Owner Resolution | Required Record | Override? | Notes
 S7 gate verdict | Quality Gate | Gate Decision | No |
 S8 publish, commit, submit, or check-in | Orchestrator | publish evidence | No |
 
-## S2 Context Pack
-
-Context is current and publish-scoped.
-
 ## S3 Task Graph
 
 Task | Owner | Context Boundary | Depends On | Outputs | Writable Area | Validation Checkpoint | Fallback
 --- | --- | --- | --- | --- | --- | --- | ---
-Focused patch slice | Implementer | delegate implementation session | S2 Context Pack | Execution Output Record | src/focused-slice | focused test smoke check | Return to S3
+Telemetry validation slice | Implementer | delegate implementation session | S1 Role Owner Table | Execution Output Record | src/telemetry-slice | telemetry event log parse check | Return to S3
 
 ## S7 Gate Decision
 
 Verdict: Pass
-Evidence: validator passed and gate owner is independent.
+Evidence: telemetry event log parsed.

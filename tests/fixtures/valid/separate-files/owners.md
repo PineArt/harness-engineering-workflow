@@ -1,5 +1,7 @@
 # S1 Role Owner Table
 
+Telemetry Mode: Off
+
 Publish Intent: Publish
 Boundary Status: Satisfied
 

@@ -45,10 +45,21 @@ Step Closure Gates:
 Exception Paths:
 ```
 
+`Telemetry`:
+
+```text
+Telemetry Mode: Off | On
+Event Log Path: <run-workspace>/telemetry.jsonl
+Profiler Summary Path: <run-workspace>/profiler.json
+Timing Semantics: Use the `Run Telemetry` timing rules in artifact-registry.md
+```
+
 Rules:
 - the default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`
 - the default completed path is `exec-plans/completed/YYYY-MM-DD-<slug>/`
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, and exception-path approval
+- `Telemetry Mode: Off` is valid by default; when `On`, use the optional `Run Telemetry` and `Run Profiler` schemas in [artifact-registry.md](artifact-registry.md)
+- `validate_harness_run.py` requires a `Telemetry Mode` declaration; `Telemetry Mode: On` also validates the event log path and basic JSONL structure
 - if the workspace cannot be created or declared, `Orchestrator` stops before `S0` and fixes the environment
 - `S0` closes only when `Task Brief`, `Run Workspace`, and the initial `Decision Log` entry are written and field-valid
 - if the run imports or continues from prior non-publish exploration, `S0` closure must record the imported material as evidence or context only, and the `Task Brief` must state the current run's publish goal and scope independently
