@@ -43,6 +43,8 @@ Completed Path:
 Artifact Index:
 Step Closure Gates:
 Exception Paths:
+Continuation Current: CURRENT.md
+Checkpoint Directory: checkpoints/
 ```
 
 `Telemetry`:
@@ -60,10 +62,13 @@ Rules:
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, and exception-path approval
 - `Telemetry Mode: Off` is valid by default; when `On`, use the optional `Run Telemetry` and `Run Profiler` schemas in [artifact-registry.md](artifact-registry.md)
 - `validate_harness_run.py` requires a `Telemetry Mode` declaration; `Telemetry Mode: On` also validates the event log path and basic JSONL structure
+- `Orchestrator` creates `CURRENT.md` and the first append-only checkpoint under `checkpoints/` before S1 validation runs; the canonical schema is `Continuation Packet` in [artifact-registry.md](artifact-registry.md)
 - if the workspace cannot be created or declared, `Orchestrator` stops before `S0` and fixes the environment
 - `S0` closes only when `Task Brief`, `Run Workspace`, and the initial `Decision Log` entry are written and field-valid
 - if the run imports or continues from prior non-publish exploration, `S0` closure must record the imported material as evidence or context only, and the `Task Brief` must state the current run's publish goal and scope independently
 - `Orchestrator` enforces step-closure gates and must return to the failed step if an artifact is missing, incomplete, field-invalid, or written to an unvalidated equivalent location
+- after auto compact, thread copy, or resume, `Orchestrator` reads `CURRENT.md`, opens the latest checkpoint, re-runs the validator, and then continues from the remaining checklist
+- do not infer completion from a compacted summary; re-check upload, restart, live verify, scoped commit, and publish record when those items are in scope
 - do not defer workspace declaration to `S4`, `S7`, or `S8`
 
 ## Step S1. Role Set And Owners
@@ -149,8 +154,10 @@ Notes:
 
 `Orchestrator` owns `S1` closure.
 `S1` closes only when the role owner table and run-specific responsibility matrix are written to the declared `Run Workspace` or to an explicitly declared equivalent location, declares publish intent, resolves phase-critical S6/S7/S8 ownership, and satisfies the boundary rules above.
+`S1` closes only after `Orchestrator` writes a fresh continuation checkpoint with an incremented `Checkpoint Seq` and updates `CURRENT.md`.
 `S1` also closes only after `Orchestrator` runs `python scripts/validate_harness_run.py <run-workspace>` from the skill root, or the equivalent installed script path, and records a passing result. A failed result returns the workflow to `S1` and blocks `S2`.
 For a publishable run that imports prior non-publish exploration, `S1` also closes only after `Orchestrator` verifies that the role table and responsibility matrix do not inherit prior `Boundary Status`, `Gate Decision`, or publish-readiness records.
+For a publishable run that imports prior non-publish exploration, `S1` also refreshes the latest continuation checkpoint under current `Publish` intent.
 Do not enter `S2` until publish intent, accountable owners, required independent context boundaries, and phase-critical action owners are established.
 If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
 
@@ -201,6 +208,7 @@ For `Lite`, the `Writable Area` for every task must be inside the declared `Run 
 `Orchestrator` owns `S3` closure.
 `S3` closes only when `Task Graph` is written and field-valid, including named `Outputs`, a unique `Writable Area` for every task, and `Validation Checkpoint` for every implementation task.
 If one implementation task would require multiple behavior changes across unrelated areas, `Orchestrator` splits it before `S3` closes instead of relying on `Implementer` to subdivide it during `S4`.
+`S3` closes only after `Orchestrator` writes a fresh continuation checkpoint with an incremented `Checkpoint Seq` and updates `CURRENT.md`.
 For a publishable run that imports prior non-publish exploration, `S3` closes only when the `Task Graph` is refreshed for the current `Publish` intent and does not reuse an exploration task graph as proof of owner separation, gate coverage, or publish readiness.
 
 ## Execution Entry Assertion
@@ -235,6 +243,9 @@ Execution rules:
 - `Outputs` must match the named artifact in `Task Graph`, and may be written only to that task's `Writable Area`.
 - For implementation tasks, execute the `Task Graph` slice as assigned. Do not fuse adjacent slices unless `Orchestrator` first refreshes `S3`.
 - Record the result of the task's `Validation Checkpoint` in the execution output or runtime evidence.
+- Mainline context should hold decisions and pointers only; long tool output, grep/read dumps, traces, screenshots, and model transcripts belong in run-workspace artifacts referenced by path and locator.
+- Before and after delegated work that crosses a new independent `Context Boundary`, refresh the continuation checkpoint or record why no refresh was needed.
+- Treat context pressure, auto compact, or repeated long-history rereads as a signal to checkpoint early and split work.
 - On failure, fall back only to the responsible step.
 
 ## Step S5. Risk Scan
@@ -257,6 +268,7 @@ Risk Register:
 - `Closed`
 
 If `Runtime Verifier` is active, its `Runtime Evidence Record` should exist before `Critic` closes any state-dependent risk as `Closed`.
+`S5` closes only after `Orchestrator` writes a fresh continuation checkpoint with an incremented `Checkpoint Seq` and updates `CURRENT.md`.
 
 See [artifact-registry.md](artifact-registry.md) for the full field definitions.
 
@@ -316,6 +328,7 @@ Rules:
 - return only `Pass`, `Conditional Pass`, or `Fail`
 - follow the canonical gate verdict, field-population, and replay rules from [checklists.md](checklists.md)
 - before returning `Pass`, `Conditional Pass`, guarded-publish, or any publish-readiness verdict, run `python scripts/validate_harness_run.py <run-workspace>` and cite the passing result in the `Gate Decision`; if it fails or was not run, return `Fail` to `S1`
+- before returning any gate verdict, verify that the latest continuation checkpoint is fresh for `S7`; if it is missing or stale, return `Fail` to the owning checkpoint step
 
 If `checklists.md` is temporarily unavailable:
 - `Orchestrator` restores that file from version control first
@@ -355,6 +368,7 @@ Before publish, at minimum have:
 - [ ] `Decision Log`
 - [ ] `S0`, `S1`, `S2`, and `S3` step-closure gates succeeded before the next step began
 - [ ] `validate_harness_run.py <run-workspace>` passed at `S1` closure / `S2` entry and again before the `S7` verdict
+- [ ] `CURRENT.md` points to the latest append-only continuation checkpoint, and checkpoints exist for `S1`, `S3`, `S5`, and `S7` when those steps have been reached
 
 `Decision Log` is maintained by `Orchestrator` by default.
 If `Human Decision Maker` exists, that role's final decision must be appended to the same `Decision Log`.
@@ -370,6 +384,7 @@ If `Human Decision Maker` exists, that role's final decision must be appended to
 
 `Orchestrator` owns detecting these triggers and assigning the summary or split owner.
 Do not wait for context overload to create the minimum publish-separation subagents. In `Lite`, that separation is an entry requirement for publishable delegated runs, not only an overload response.
+When a trigger fires, write a continuation checkpoint before splitting or summarizing so the mainline can recover through pointers rather than a chat summary.
 
 ## Escalate To Full If
 

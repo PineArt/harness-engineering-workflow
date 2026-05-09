@@ -100,6 +100,10 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - `Ultra Lite` starts with a filled goal/scope block and `Preflight Judgment` before task-specific execution.
 - Do not use `Ultra Lite` for correctness-critical changes such as integrity, durability, recovery, ordering, security, or externally visible contract semantics.
 - `Lite` and `Full` runs must declare a `Run Workspace` before `S0`; default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`.
+- `Lite` and `Full` runs must keep a continuation packet in the run workspace: `CURRENT.md` points to the latest append-only `checkpoints/NNNN-S<step>.md` file.
+- `S1`, `S3`, `S5`, and `S7` close only after a fresh continuation checkpoint with an incremented `Checkpoint Seq`.
+- After auto compact, thread copy, or resume, read `CURRENT.md`, open the latest checkpoint, re-run `python scripts/validate_harness_run.py <run-workspace>`, and continue from the remaining checklist rather than from a chat summary alone.
+- Keep the mainline to decisions and artifact pointers; move bulky evidence into run-workspace artifacts referenced by path and locator.
 - Before `S1` closes and `S2` begins, `Lite` and `Full` must declare publish intent or record the run as non-publish exploration.
 - If a publishable `Lite` or `Full` run imports or continues from non-publish exploration, `S0` records that material as evidence or context only, and `S0` through `S3` must re-close under current `Publish` intent.
 - Publishable `Lite` and `Full` runs may not inherit `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` closure from non-publish exploration.

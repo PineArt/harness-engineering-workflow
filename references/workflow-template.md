@@ -86,6 +86,7 @@ Environment requirements:
 - high-frequency tools should prefer low latency to avoid idle feedback loops
 - keep system instructions and core prefixes as stable as possible to reduce context cache invalidation
 - every `Full` run has `Orchestrator` declare and validate a `Run Workspace` immediately after tier selection and before `S0`; default active path is `exec-plans/active/YYYY-MM-DD-<slug>/`
+- every `Full` run creates an append-only `Continuation Packet` in the run workspace before S1 validation runs; `CURRENT.md` points to the latest file under `checkpoints/`
 - if the default `exec-plans/` structure is unavailable, the `Execution Environment Spec` must declare the equivalent artifact location before execution starts
 
 AI-friendly tools to prioritize:
@@ -170,6 +171,7 @@ Inputs:
 Method:
 - define directory structure
 - formalize the already-declared `Run Workspace`, including active path, completed path, artifact index, step-closure gates, and exception paths
+- formalize the `Continuation Packet` location: `CURRENT.md` plus append-only `checkpoints/NNNN-S<step>.md` files
 - define file naming
 - define a unified output format
 - define status, version, and log fields
@@ -199,7 +201,9 @@ Acceptance:
 - tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are treated as context or evidence, not separate accountable owners by themselves
 - publish intent or non-publish exploration is recorded before `S2`
 - `validate_harness_run.py <run-workspace>` passes before `S1` closes and before `S2` begins
+- `CURRENT.md` points to a field-valid continuation checkpoint before `S1` closes and before `S2` begins
 - for any publishable run that imports prior non-publish exploration, `S1` entrance verifies that no prior `Boundary Status`, `Gate Decision`, or publish-readiness claim is carried forward into the current role table or responsibility matrix
+- for any publishable run that imports prior non-publish exploration, the latest continuation checkpoint is refreshed under current `Publish` intent and does not reuse exploration state as closure evidence
 - publishable `Lite` and `Full` boundary status is satisfied before `S2`, not conditional or deferred to gate time
 - S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership resolves through the `Run-Specific Responsibility Matrix` or the canonical defaults in `artifact-registry.md`
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
@@ -273,6 +277,7 @@ Method:
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
 - assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Critic` or `Quality Gate`
 - mark context-overload risk points
+- mark checkpoint refresh points before and after delegated work that crosses a new independent `Context Boundary`
 - predefine subagent split strategies for high-complexity work
 - for publishable delegated `Full` runs, `Orchestrator` verifies the minimum required distinct independent context boundaries were established during `S1`; if not, return to `S1` before entering `S2`
 - In `Full`, have `Orchestrator` publish `Task Graph` first, then have `Workflow Designer` consume that graph plus the mapped principles to publish `Workflow Draft` within the same `S3` stage.
@@ -313,6 +318,7 @@ Execution entry assertion:
 - Do not enter `S4` if any precondition artifact is missing, malformed, or only drafted in memory; return to the owning step before execution.
 - Do not enter `S4` for a publishable run that imports prior non-publish exploration until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, `Task Graph`, or `Workflow Draft` records do not satisfy this entry assertion.
 - Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
+- Do not enter `S4` if `CURRENT.md` does not point to a continuation checkpoint refreshed through `S3`.
 
 Method:
 - run analysis, design, implementation, and risk scanning in parallel where appropriate
@@ -323,6 +329,9 @@ Method:
 - have implementers execute the assigned Task Graph slice without fusing adjacent slices unless `Orchestrator` refreshes `S3`
 - record each implementation node's `Validation Checkpoint` result in the execution output or runtime evidence
 - `Orchestrator` splits work to subagents when the primary agent's context pressure becomes too high
+- keep the mainline to decisions and artifact pointers; large tool outputs, transcripts, traces, screenshots, and raw evidence live in run-workspace artifacts referenced by path and locator
+- before and after delegated work that crosses a new independent `Context Boundary`, refresh the continuation checkpoint or record why no refresh was needed
+- when context pressure, auto compact, or repeated long-history rereads appears, checkpoint early and split work before continuing
 
 Outputs:
 - the set of subtask artifacts
@@ -364,6 +373,7 @@ Schema:
 Acceptance:
 - key risks have explicit owners
 - every high-risk item includes evidence and required action
+- `Orchestrator` writes a fresh continuation checkpoint for `S5` before gate review starts
 
 Fallback:
 - if a high-risk item cannot be assigned to an owner, fall back to `Task Graph`
@@ -492,6 +502,7 @@ Acceptance:
 - ready to run again next time
 - result acceptance is clear and does not depend on line-by-line human review
 - `Full` runs missing required independent context boundaries or owner separation are fatal `Boundary Integrity` failures and may not be presented as publish-ready
+- `S7` has a fresh continuation checkpoint, `CURRENT.md` points to it, and the latest validator result covers that checkpoint
 - final publish evidence includes at least 3 distinct context boundaries across the required separated owners
 - final publish evidence includes the S1 `Run-Specific Responsibility Matrix` and any commit, check-in, submit, or publish evidence required by that matrix
 - final publish evidence includes a passing `validate_harness_run.py <run-workspace>` result from before `S2` and a current passing result from before the latest `Gate Decision`
@@ -570,6 +581,7 @@ Prefer signals that agents can read directly:
 - prefer append-only context growth instead of repeatedly rewriting stable prefixes
 - summarize long histories periodically to avoid ReAct loops exploding the context
 - force a summary or a subagent split when there are more than 3 unresolved questions, more than 2 rework rounds on the same step, or more than 4 upstream artifacts to reread
+- before every summary or split caused by context pressure, write a continuation checkpoint so recovery starts from repo-backed state rather than compacted chat history
 
 ## 9. AI-Friendly Tooling Heuristics
 

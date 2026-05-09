@@ -6,6 +6,7 @@ Telemetry Mode: Off
 
 Publish Intent: Publish
 Boundary Status: Satisfied
+Continuation Packet: [`CURRENT.md`](CURRENT.md)
 
 Role | Owner | Context Boundary | Shared? | Notes
 --- | --- | --- | --- | ---
@@ -35,3 +36,71 @@ Focused patch slice | Implementer | delegate implementation session | S2 Context
 
 Verdict: Pass
 Evidence: validator passed and gate owner is independent.
+
+## Continuation Packet
+
+Current Checkpoint: `checkpoints/0004-S7.md`
+
+### Checkpoint 0001
+
+Run ID: valid-single-runbook
+Active Run Workspace Path: tests/fixtures/valid/single-runbook
+Current Step: S1
+Last Completed Step: S0
+Checkpoint Seq: 1
+Last Updated: 2026-05-09T09:00:00+08:00
+Completed Checklist: Task Brief, Run Workspace, Decision Log
+Remaining Checklist: Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph
+Inflight Delegations: None
+Next Action: Write the S1 role table and validate the workspace.
+Blockers: None
+Evidence Pointers: `runbook.md#S1` and `runbook.md#S7`
+Context Pressure Signal: none
+
+### Checkpoint 0002
+
+Run ID: valid-single-runbook
+Active Run Workspace Path: tests/fixtures/valid/single-runbook
+Current Step: S3
+Last Completed Step: S1
+Checkpoint Seq: 2
+Last Updated: 2026-05-09T09:10:00+08:00
+Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix
+Remaining Checklist: Context Pack, Task Graph, Execution Output Record
+Inflight Delegations: None
+Next Action: Build the context pack and task graph.
+Blockers: None
+Evidence Pointers: `runbook.md#S1`
+Context Pressure Signal: none
+
+### Checkpoint 0003
+
+Run ID: valid-single-runbook
+Active Run Workspace Path: tests/fixtures/valid/single-runbook
+Current Step: S5
+Last Completed Step: S3
+Checkpoint Seq: 3
+Last Updated: 2026-05-09T09:20:00+08:00
+Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph
+Remaining Checklist: Execution Output Record, Risk Register, Integration Ledger
+Inflight Delegations: None
+Next Action: Finish execution and risk scan.
+Blockers: None
+Evidence Pointers: `runbook.md#S7`
+Context Pressure Signal: auto compact risk low
+
+### Checkpoint 0004
+
+Run ID: valid-single-runbook
+Active Run Workspace Path: tests/fixtures/valid/single-runbook
+Current Step: S7
+Last Completed Step: S5
+Checkpoint Seq: 4
+Last Updated: 2026-05-09T09:30:00+08:00
+Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph, Execution Output Record, Risk Register, Integration Ledger
+Remaining Checklist: Gate Decision, Publish
+Inflight Delegations: None
+Next Action: Run the gate and prepare publish evidence.
+Blockers: None
+Evidence Pointers: `runbook.md#S7`
+Context Pressure Signal: none
