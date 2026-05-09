@@ -1,5 +1,7 @@
 # S1 Role Owner Table
 
+Telemetry Mode: Off
+
 | Role | Owner | Context Boundary | Responsibility |
 | --- | --- | --- | --- |
 | Orchestrator | Codex current thread | Local desktop context, repo mirror, harness artifacts | Scope, artifact records, remote safety, final integration decision |

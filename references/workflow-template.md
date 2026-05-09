@@ -147,6 +147,15 @@ Acceptance:
 - `Task Brief` is written to the declared `Run Workspace` or an explicitly declared equivalent location before `S1` starts
 - if the run imports or continues from prior non-publish exploration, `Task Brief` records that material as evidence or context only and states the current run's publish goal and scope independently before `S0` closes
 
+Telemetry declaration:
+
+```text
+Telemetry Mode: Off | On
+Event Log Path: <run-workspace>/telemetry.jsonl
+Profiler Summary Path: <run-workspace>/profiler.json
+Timing Semantics: Use the `Run Telemetry` timing rules in artifact-registry.md
+```
+
 Fallback:
 - if the goal is ambiguous, do not start downstream agents
 
@@ -183,6 +192,8 @@ Acceptance:
 - all agents use the same skeleton
 - the `Run Workspace` was declared before `S0` and is formalized in `Execution Environment Spec`
 - `Orchestrator` owns workspace creation, accessibility validation, artifact index maintenance, equivalent-location approval, and step-closure enforcement
+- `Telemetry Mode: Off` is valid by default; when `On`, the run uses the optional `Run Telemetry` and `Run Profiler` schemas in `artifact-registry.md`
+- `validate_harness_run.py` requires a `Telemetry Mode` declaration; `Telemetry Mode: On` also validates the event log path and basic JSONL structure
 - artifacts can be merged, traced, and audited
 - every role already has a clear owner
 - tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are treated as context or evidence, not separate accountable owners by themselves
@@ -461,6 +472,13 @@ Decision Log Schema:
 - `Affected Artifact`
 - `Recorded At`
 - `Next Step`
+
+Next Iteration Notes Schema:
+- `Observed Failure Pattern`
+- `What Changed`
+- `What To Reuse`
+- `What To Tighten Next Time`
+- `Telemetry Highlights`
 
 Acceptance:
 - reusable

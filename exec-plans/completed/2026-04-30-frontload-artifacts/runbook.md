@@ -1,5 +1,7 @@
 # Harness Runbook: Front-Loaded Artifact Controls
 
+Telemetry Mode: Off
+
 ## Task Brief
 
 Goal:

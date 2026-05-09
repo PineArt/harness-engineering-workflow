@@ -8,6 +8,7 @@ Completed Path: exec-plans/completed/2026-05-01-s1-responsibility-matrix/
 Artifact Index: this runbook records Task Brief, Run Workspace, Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph, Integration Ledger, Decision Log, and Gate Decision
 Step Closure Gates: S0 through S3 must be written and field-valid before the next step starts
 Exception Paths: none
+Telemetry Mode: Off
 
 ## S0 Task Brief
 

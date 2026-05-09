@@ -26,6 +26,8 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 | `Gate Decision` | `Quality Gate` | `S7` | `Lite`, `Full` |
 | `Published Version` | `Template Editor` or publish owner | `S8` | `Full` |
 | `Next Iteration Notes` | `Orchestrator` | `S8` | `Full` |
+| `Run Telemetry` | `Orchestrator` | `S0` starts; `S8` closes | `Lite`, `Full` optional |
+| `Run Profiler` | `Orchestrator` | `S8` | `Lite`, `Full` optional |
 
 ## Run Workspace Contract
 
@@ -58,12 +60,16 @@ Completed Path:
 Artifact Index:
 Step Closure Gates:
 Exception Paths:
+Telemetry Mode:
+Event Log Path:
+Profiler Summary Path:
 ```
 
 Rules:
 - `Ultra Lite` does not require a durable `Run Workspace` by default, but the short goal/scope block and `Preflight Judgment` must exist before editing or execution starts.
 - `Ultra Lite` `Preflight Judgment` must state whether the task is still Ultra Lite, why, the concrete validation path, whether that path is executable now, the validation-failure action, and whether to escalate before execution.
 - `Lite` and `Full` runs must declare a `Run Workspace` immediately after tier selection and before `S0`.
+- `Lite` and `Full` runs must declare `Telemetry Mode: Off | On`; `Off` is the valid default, and `On` must include an event log path.
 - `Full` runs must also formalize the `Run Workspace` during `S1` in `Execution Environment Spec`.
 - every required artifact for `S0`, `S1`, `S2`, and `S3` must be written and field-valid before the workflow enters the next step.
 - `S4` may assert that the earlier step-closure gates were satisfied, but it must not be the first point where missing pre-execution artifacts are discovered.
@@ -259,6 +265,114 @@ Field notes:
 - `Starting State` records the relevant observed state before the change or before the verification action
 - `Evidence` should cite concrete runtime outputs such as test logs, screenshots, traces, responses, or database reads
 
+### `Run Telemetry`
+
+`Run Telemetry` is an optional append-only JSONL event stream for run-level profiler signals.
+It records harness execution shape, not domain-specific skill failure taxonomies.
+Skill-specific failure codes and recovery evidence belong to the owning skill, not this artifact.
+
+Default path:
+
+```text
+<run-workspace>/telemetry.jsonl
+```
+
+Event fields:
+
+```json
+{
+  "run_id": "",
+  "ts": "",
+  "event": "",
+  "step": "",
+  "owner": "",
+  "active_ms": 0,
+  "human_wait_ms": 0,
+  "detail": {}
+}
+```
+
+Allowed `event` values:
+- `step_enter`
+- `step_exit`
+- `gate_verdict`
+- `rework_requested`
+- `compaction`
+- `model_call`
+- `human_wait_enter`
+- `human_wait_exit`
+
+Field notes:
+- `run_id` must match the declared `Run Workspace` `Run ID`.
+- `ts` is an ISO 8601 UTC timestamp.
+- `step` is `preflight` or `S0` through `S8`.
+- `owner` should match the current `Role Owner Table` when the event has an accountable owner; leave it empty only for run-level events with no single owner.
+- `active_ms` and `human_wait_ms` use integer milliseconds.
+- `active_ms` means agent reasoning time plus tool execution and tool wait time. I/O wait, model wait, browser wait, SSH wait, build wait, and test wait count as active time unless the run explicitly enters human wait.
+- `human_wait_ms` means time blocked on human decision, manual input, external approval, or manual authentication. It is excluded from active time.
+- `active_ms` and `human_wait_ms` should appear on `step_exit` and may appear on other duration-bearing events. Do not double count the same interval in both fields.
+- `detail` is a small JSON object for event-local context. Keep it short, structured, and scrubbed of secrets.
+- In the first version, `Orchestrator` may record only the events it can observe reliably. `step_enter`, `step_exit`, `gate_verdict`, `rework_requested`, and `human_wait_*` events are the preferred manual baseline. `model_call` and `compaction` may be omitted when the run cannot obtain them reliably.
+- A `step_exit` duration is the duration for that specific step attempt. If a step re-enters after rework, `Run Profiler` accumulates repeated attempts under the same step and records the re-entry through `rework_count`.
+
+`validate_harness_run.py` enforces that `Telemetry Mode` is explicitly declared.
+`Telemetry Mode: Off` is valid by default.
+When `Telemetry Mode` is `On`, the validator checks that the event path exists, the JSONL is parseable, required event fields are present, event and step values use the allowed enums, and a single record does not double count active and human-wait time.
+If a single markdown file is validated instead of a run workspace directory, `Telemetry Mode: On` cannot use relative or `<run-workspace>/...` paths because the event log cannot be verified.
+The validator scans the first 50,000 telemetry lines and warns if the scan is truncated.
+`--skip-telemetry` is an escape hatch for non-publish historical audits or migration work; do not use it for publish/pass gate evidence.
+
+### `Run Profiler`
+
+`Run Profiler` is an optional S8 summary derived from `Run Telemetry`.
+It summarizes run-level cost, latency, context pressure, rework, and gate outcomes.
+
+Default path:
+
+```text
+<run-workspace>/profiler.json
+```
+
+Minimum fields:
+
+```json
+{
+  "run_id": "",
+  "tier": "",
+  "per_step": {
+    "S0": {
+      "active_ms": 0,
+      "human_wait_ms": 0,
+      "model_calls": 0,
+      "compactions": 0,
+      "rework_count": 0
+    }
+  },
+  "totals": {
+    "active_ms": 0,
+    "human_wait_ms": 0,
+    "model_calls": 0,
+    "compactions": 0,
+    "rework_count": 0
+  },
+  "gate_outcomes": [],
+  "notes": ""
+}
+```
+
+Field notes:
+- `per_step` keys should use `preflight` or `S0` through `S8`.
+- repeated attempts for the same step are accumulated under that step.
+- `totals` should sum the comparable values from `per_step`.
+- `gate_outcomes` records each S7 verdict in order, including re-gates.
+- `notes` captures concise S8 learning highlights and may cite improvement candidates, but it must not automatically edit a skill.
+- summary tooling should be added only after real telemetry events exist and the event schema has stabilized across runs.
+
+Enforcement boundary:
+- Do not require telemetry collection by default; `Telemetry Mode: Off` remains a valid explicit choice.
+- Do not require complete `model_call` or `compaction` coverage in the first version.
+- Do not make `Run Profiler` field completeness a blocking quality gate until real telemetry events exist and the summary schema has stabilized across runs.
+
 ### `Risk Register`
 
 ```text
@@ -382,4 +496,5 @@ Observed Failure Pattern:
 What Changed:
 What To Reuse:
 What To Tighten Next Time:
+Telemetry Highlights:
 ```
