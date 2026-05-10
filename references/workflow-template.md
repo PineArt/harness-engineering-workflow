@@ -106,8 +106,9 @@ AI-friendly tools to prioritize:
 | `Workflow Designer` | design steps, dependencies, and fallbacks | principles, task goals | `Workflow Draft` | overstep into arbitration |
 | `Implementer` | produce code or documentation outputs | task brief, context pack | patch, draft, tests | rewrite upstream goals |
 | `Runtime Verifier` | produce runtime evidence against real state surfaces | task graph, context pack, running system state | `Runtime Evidence Record` | substitute synthetic state for the required pre-existing state without explicit approval |
+| `Publish Worker` | execute separated publish, upload, restart, scoped commit, check-in, submit, or remote status-confirmation steps | handoff, task graph, publish ownership | `Publish Output Record` | change implementation logic or issue the final gate verdict |
 | `Critic` | find gaps, conflicts, and risks | drafts, process records | `Risk Register`, `Revision Requests` | become the primary narrative writer |
-| `Advisor` | propose direction, options, and debate positions | task brief, context pack, decision question | `Advisory Note` | substitute for `Critic` or `Quality Gate` |
+| `Advisor` | propose direction, options, and debate positions | task brief, context pack, decision question | `Advisory Note` | substitute for `Implementer`, `Critic`, or `Quality Gate` |
 | `Quality Gate` | decide whether the work passes gate review | artifacts from all phases | `Pass`, `Conditional Pass`, `Fail` | modify the content directly |
 | `Template Editor` | package the result into reusable assets | approved content | `Reusable Template`, `Runbook` | change the core conclusions |
 | `Human Decision Maker` | make directional decisions | pending decisions, residual risks | `Decision Log` | fall back to executing every detail personally |
@@ -117,7 +118,7 @@ Concrete action ownership defaults are canonical in the `Responsibility Matrix` 
 
 For escalation thresholds, count distinct workflow roles that need active ownership in the current run, not task count or subtask count.
 `Runtime Verifier` may be added to `Lite` without immediate escalation when it is the only optional role beyond the default four and the workflow still centers on one primary implementation path.
-`Advisor` is optional and may be used for direction, debate, or option generation; it does not satisfy `Critic`, `Quality Gate`, or publish-separation requirements by itself.
+`Advisor` is optional and may be used for direction, debate, or option generation; it does not satisfy `Implementer`, `Critic`, `Quality Gate`, or publish-separation requirements by itself, and the same accountable owner should not be reused for `Advisor` and those phase-critical roles in the same run.
 
 ## 5. Phase-by-Phase Workflow
 
@@ -275,7 +276,7 @@ Method:
 - define termination conditions
 - define human decision points
 - identify any task whose correctness depends on pre-existing state and assign a `Runtime Verifier` or equivalent runtime-validation owner
-- assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Critic` or `Quality Gate`
+- assign `Advisor` only when direction, debate, or option generation needs a named owner; its `Advisory Note` does not satisfy `Implementer`, `Critic`, or `Quality Gate`
 - mark context-overload risk points
 - mark checkpoint refresh points before and after delegated work that crosses a new independent `Context Boundary`
 - predefine subagent split strategies for high-complexity work
@@ -625,8 +626,9 @@ Minimal execution order:
 11. `S6` `Orchestrator` produces `Integration Ledger` and updates `Decision Log`
 12. `S7` `Quality Gate` decides whether the work passes gate review
 13. `S7` `Orchestrator` appends the gate outcome to `Decision Log`
-14. `S8` `Template Editor` packages the final template
-15. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
+14. `S8` `Template Editor` packages the final reusable template when a template artifact is part of the run
+15. `S8` `Publish Worker` or another explicit publish owner handles upload, restart, scoped commit, check-in, submit, or remote status confirmation when those actions are assigned separately, then produces `Publish Output Record`
+16. `S8` humans arbitrate disputes and version freeze only, then append `Decision Log`
 
 ## 11. Anti-Patterns
 

@@ -18,6 +18,7 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 | `Workflow Draft` | `Workflow Designer` | `S3` | `Full` |
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
 | `Runtime Evidence Record` | `Runtime Verifier` | `S4` | `Lite`, `Full` when state-surface validation is required |
+| `Publish Output Record` | `Publish Worker` or explicit publish owner | `S8` | `Lite`, `Full` when publish/upload/restart/scoped commit/check-in/submit is delegated |
 | `Risk Register` | `Critic` | `S5` | `Lite`, `Full` |
 | `Advisory Note` | `Advisor` | decision point | `Lite`, `Full` when `Advisor` is active |
 | `Unified Draft` | `Orchestrator` | `S6` | `Full` |
@@ -119,6 +120,7 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
 | Task execution and execution artifacts | assigned task owner | `Execution Output Record` |
 | Real state-surface validation | `Runtime Verifier`; if absent, `Orchestrator` must assign one or record why not required | `Runtime Evidence Record` or `Decision Log` |
+| Publish, upload, restart, scoped commit, check-in, submit, or remote status confirmation | `Publish Worker` or explicit publish/check-in owner; otherwise the run-specific matrix must justify the fallback owner | `Publish Output Record`, commit evidence, publish evidence, and `Decision Log` |
 | Risk scan and revision requests | `Critic` | `Risk Register` |
 | Advisory debate or option generation | `Advisor` | `Advisory Note` |
 | Integration and conflict resolution | `Orchestrator` | `Integration Ledger` and `Decision Log` |
@@ -132,6 +134,8 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Commit, check-in, or submit action after gate pass | explicit publish/check-in owner; otherwise `Orchestrator` for `Lite`, `Template Editor` or publish owner for `Full` | commit, submit, or publish evidence plus `Decision Log` |
 | Final version freeze or human arbitration | `Human Decision Maker` when active; otherwise `Orchestrator` records the accepted decision | `Decision Log` |
 | Moving or copying durable run records from `exec-plans/active/` to `exec-plans/completed/` | `Orchestrator` unless publish owner is assigned | `Decision Log` and preserved artifact index |
+
+Default ownership does not authorize `Orchestrator` to perform a phase-critical action that the run-specific matrix assigned to another owner. If implementation, runtime verification, publish/commit/submit, or gate verdict work is assigned elsewhere, `Orchestrator` integrates and records evidence only.
 
 ### Run-Specific Responsibility Matrix
 
@@ -239,6 +243,7 @@ Field notes:
 - within a run, one `Context Boundary` may map to only one `Owner`
 - if multiple rows share one `Context Boundary`, they must also share the same `Owner`, and `Shared?` must be `Yes`
 - record an `Agent ID` or mechanism-specific handle in `Notes` only when useful; it is optional and does not prove context independence
+- record model tier or model name in `Notes` when it materially affects reproducibility or risk; small/fast model use is acceptable for bounded mechanical slices, but not for final gate or source-fidelity-heavy review without an explicit exception
 
 ### `Execution Environment Spec`
 
@@ -328,6 +333,27 @@ Field notes:
 - `State Surface` names the real pre-existing state surface used for validation
 - `Starting State` records the relevant observed state before the change or before the verification action
 - `Evidence` should cite concrete runtime outputs such as test logs, screenshots, traces, responses, or database reads
+
+### `Publish Output Record`
+
+```text
+Publish Scope:
+Assigned Owner:
+Target Environment:
+Actions Performed:
+Upload Evidence:
+Restart Evidence:
+Live Status Evidence:
+Scoped Commit Or Check-in Evidence:
+Publish Record Evidence:
+Skipped Items:
+Residual Risk:
+```
+
+Field notes:
+- `Skipped Items` must explicitly say `None` when every assigned publish hard point was executed.
+- If any hard point such as upload, restart, live status confirmation, scoped commit, check-in, submit, or publish record is skipped, name the owner and return step that will close it.
+- Do not use this record to justify implementation changes; publish-blocking code changes return to the assigned implementation owner.
 
 ### `Run Telemetry`
 

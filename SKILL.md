@@ -27,7 +27,7 @@ For `Lite`, start with these 4 roles:
 - `Critic`
 - `Quality Gate`
 
-Only add more roles such as `Advisor`, `Runtime Verifier`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
+Only add more roles such as `Advisor`, `Runtime Verifier`, `Publish Worker`, `Source Analyst`, `Workflow Designer`, or `Human Decision Maker` when the task actually needs them.
 
 Do not default to the full role set on small tasks.
 
@@ -48,7 +48,7 @@ Default execution posture:
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 
 Do not treat distinct role names by themselves as proof of distinct execution ownership.
-Do not treat `Advisor` output as `Critic` or `Quality Gate` output unless that owner is explicitly assigned to the role and produces the required artifact.
+Do not treat `Advisor` output as `Implementer`, `Critic`, or `Quality Gate` output. If an owner is assigned as `Advisor`, do not reuse that same accountable owner for `Implementer`, `Critic`, or `Quality Gate` in the same run; use a separate owner/context or omit the `Advisor` role.
 Before `S1` closes and before `S2` begins, `Orchestrator` must declare whether a `Lite` or `Full` run is intended for publish or is non-publish exploration.
 If a `Lite` or `Full` run imports or continues from non-publish exploration, `S0` closure must record the imported exploration material as evidence or context only, and `S0` through `S3` must re-close under the current `Publish` intent. A publishable run may not inherit `Boundary Status`, `Gate Decision`, or publish-readiness claims from non-publish exploration; it must establish its own publish goal, owner boundaries, gate path, and publish readiness in the current run.
 For `Lite` and `Full`, `S1` closure and `S2` entry must run `python scripts/validate_harness_run.py <run-workspace>` from the skill root, or the equivalent installed script path, before task-specific downstream work starts. A failing validator result is a fatal step-closure failure. This validator is an enforcement gate, not advisory evidence.
@@ -90,9 +90,12 @@ Run workspace posture:
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
 - `Orchestrator` assigns `Runtime Verifier` or records why no verifier is required for any change that depends on pre-existing state.
+- Assign `Publish Worker` when publish requires remote upload, restart, live-service status confirmation, scoped commit, check-in, submit, or a separate publish record that should not be executed in the `Orchestrator` context.
 - If a single agent is nearing context overload, `Orchestrator` splits work into subagents or smaller owned tasks.
 - For `Lite` and `Full`, `Orchestrator` slices implementation work in `S3` before handing it to `Implementer`: each implementation node is one behavior change or one tightly related file cluster, and each has a named `Validation Checkpoint`.
 - When delegation is required, `Orchestrator` ensures the work crosses independent context boundaries; do not simulate separation with different role labels inside one context.
+- `Orchestrator` coordinates, slices, integrates, and records publish evidence; it does not execute phase-critical implementation, runtime verification, publish/commit/submit, or gate verdicts assigned to another owner.
+- If an assigned phase-critical action is performed inside the `Orchestrator` context, treat it as a fatal `Boundary Integrity` failure even when the owner column names someone else.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
 ## What To Read
@@ -183,6 +186,7 @@ Lite:
 - step-closure records for `S0`, `S1`, `S2`, and `S3` before the next step starts
 - one `Execution Output Record`
 - one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
+- one `Publish Output Record` when `Publish Worker` owns upload, restart, scoped commit, check-in, submit, or publish status confirmation
 - one `Risk Register`
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`

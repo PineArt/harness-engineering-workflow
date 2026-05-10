@@ -7,7 +7,7 @@ Use this file together with [workflow-template.md](workflow-template.md), [workf
 - `Ultra Lite`: use only `Implementer` by default
 - `Ultra Lite` with unclear boundaries: `Implementer` + `Orchestrator`
 - `Lite`: use at least `Orchestrator`, `Implementer`, `Critic`, and `Quality Gate`; before `S2`, declare publish intent or record non-publish exploration. For any publishable run, assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners on at least 3 distinct independent context boundaries, or stop with a fatal `Boundary Integrity` failure
-- `Lite` or `Full`: add `Advisor`, `Runtime Verifier`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them; `Advisor` does not affect boundary requirements
+- `Lite` or `Full`: add `Advisor`, `Runtime Verifier`, `Publish Worker`, `Source Analyst`, `Principle Mapper`, `Workflow Designer`, `Template Editor`, or `Human Decision Maker` only when the task requires them; `Advisor` does not affect boundary requirements
 - `Full`: escalate when environment design, multi-workflow convergence, 5 or more distinct workflow roles needing active ownership other than a single `Runtime Verifier` added only for state-surface validation, or repeated human interpretation in Lite becomes part of the task; before `S2`, declare publish intent or record non-publish exploration. For any publishable run, establish at least 3 distinct independent context boundaries across the required separated owners when role owners are assigned, or stop with a fatal `Boundary Integrity` failure
 
 For the initial shortcut before execution starts, use `Fast Tier Check` from `SKILL.md`: start `Full` immediately when any two Full signals are already true.
@@ -35,7 +35,7 @@ If correctness depends on pre-existing state, validate against a real pre-existi
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
 For publishable Lite or Full, do not use `Conditional`, deferred, provisional, or "must be fixed before publish" boundary status in S1; either boundary separation is satisfied before S2 or the run stops.
 For publishable Lite or Full, if an external context covers Critic but not Quality Gate while the main context owns implementation, apply the External-Critic-Only Quality Gate Rule from checklists.md.
-Advisor output does not satisfy Critic, Quality Gate, or publish-separation requirements unless the same owner is explicitly assigned to that role and produces the required artifact.
+Advisor output does not satisfy Implementer, Critic, Quality Gate, or publish-separation requirements. If an owner is assigned as Advisor, do not reuse that same accountable owner for Implementer, Critic, or Quality Gate in the same run; use a separate owner/context or omit the Advisor role.
 For publishable Lite or Full, Orchestrator must not own Implementer or Quality Gate.
 Main Codex using any tool surface, protocol, credential, host, path, session, sandbox, runtime, or execution environment is still Main Codex; execution surfaces do not create independent owners by themselves.
 Delegation counts only when execution crosses an independent context boundary.
@@ -67,6 +67,7 @@ Tasks:
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
+Do not execute implementation, runtime verification, publish/commit/submit, or gate verdicts assigned to another owner; integrate their outputs instead.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
 ```
 
@@ -170,10 +171,16 @@ Tasks:
 3. Produce an `Advisory Note` with question, mode, position, recommendation, risks, and open questions.
 
 Do not:
-- substitute for `Critic` or `Quality Gate`
+- substitute for `Implementer`, `Critic`, or `Quality Gate`
 - validate correctness or issue pass/fail verdicts
 - treat advice as a binding decision
 ```
+
+## Model Tier Guidance
+
+Small or fast models are acceptable for bounded mechanical `Implementer` slices with a named `Validation Checkpoint`, read-only probes, smoke-test runs, and `Runtime Verifier` evidence collection against a clear state surface. Record the model choice in the `Notes` column of `Role Owner Table`, or in `S1` / `S3`, when it materially affects reproducibility.
+
+Do not use small or fast models for the final `Gate Decision`, source-fidelity-heavy `Source Analyst` or `Critic` review, ambiguous architecture or slicing decisions, or risky implementation slices that span unrelated files. If any of those are underway with a small or fast model, escalate the model or split the task before `S4`; the existing `S3_TASK_ROW_TOO_BROAD` warning is a signal that the slice is too ambiguous for a cheap model shortcut.
 
 ## 8. Runtime Verifier
 
@@ -192,7 +199,24 @@ Do not:
 - issue the final gate verdict
 ```
 
-## 9. Quality Gate
+## 9. Publish Worker
+
+```text
+You are the Publish Worker.
+
+Tasks:
+1. Execute only the assigned publish, upload, restart, scoped commit, check-in, submit, or remote status-confirmation steps.
+2. Preserve the implementation exactly as handed off unless `Orchestrator` assigns a publish-blocking environment repair task.
+3. Output a `Publish Output Record` with commands or actions, target environment, status, evidence pointers, scoped files or commits, and residual risk.
+4. Stop and return to `Orchestrator` if publish requires changing business logic, bypassing gate, broad dirty-worktree cleanup, or unassigned credentials.
+
+Do not:
+- change implementation logic
+- issue the final gate verdict
+- replace `Runtime Verifier` live evidence unless explicitly assigned both roles with a recorded boundary decision
+```
+
+## 10. Quality Gate
 
 ```text
 You are the Quality Gate.
@@ -238,7 +262,7 @@ Use the verdict, field-population, and replay rules from [checklists.md](checkli
 Do not give vague conclusions.
 ```
 
-## 10. Template Editor
+## 11. Template Editor
 
 ```text
 You are the Template Editor.
@@ -254,7 +278,7 @@ Do not:
 - remove key constraints
 ```
 
-## 11. Human Decision Maker
+## 12. Human Decision Maker
 
 ```text
 You are the Human Decision Maker.
@@ -276,7 +300,7 @@ Every decision must be appended to the same `Decision Log`, and must include at 
 Do not return to executing every implementation detail personally.
 ```
 
-## 12. Example Run Orders
+## 13. Example Run Orders
 
 ```text
 Ultra Lite:

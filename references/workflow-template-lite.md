@@ -85,6 +85,7 @@ Rules:
 Add these only when the task requires them:
 - `Advisor`
 - `Runtime Verifier`
+- `Publish Worker`
 - `Source Analyst`
 - `Workflow Designer`
 - `Human Decision Maker`
@@ -116,7 +117,7 @@ Notes:
 - If the required independent context boundaries cannot be established, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
 - Single-owner execution in `Lite` is a fatal `Boundary Integrity` failure.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.
-- `Advisor` may be added in `Lite` for direction, debate, or option generation without satisfying `Critic` or `Quality Gate`.
+- `Advisor` may be added in `Lite` for direction, debate, or option generation without satisfying `Implementer`, `Critic`, or `Quality Gate`; do not reuse the same accountable owner for `Advisor` and those phase-critical roles.
 - In a publishable `Lite` workflow, `Orchestrator` may not own `Implementer` or `Quality Gate`.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
 - In a publishable `Lite` workflow, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
@@ -343,6 +344,7 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 ## Step S8. Publish
 
 In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
+When `S1` assigns a `Publish Worker` or another explicit publish/check-in owner, `Orchestrator` integrates that owner's `Publish Output Record` and does not execute the assigned upload, restart, scoped commit, check-in, submit, or remote status-confirmation steps itself.
 Single-owner `Lite` is a fatal `Boundary Integrity` failure. Do not publish; tell the user final-result quality is uncontrollable.
 If the required independent context boundaries cannot be established for the run, or owner separation exists only on paper without real context separation, treat that as a fatal `Boundary Integrity` failure and stop.
 Do not enter `S8` unless the latest `Gate Decision` verdict is `Pass`.

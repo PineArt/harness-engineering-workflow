@@ -8,7 +8,7 @@ Boundary Status: Satisfied
 Role | Owner | Context Boundary | Shared? | Notes
 --- | --- | --- | --- | ---
 Orchestrator | Main Codex | current Codex thread | No | owns run workspace
-Implementer | Local Worker Agent | local worker context 019x | No | owns implementation
+Implementer | OpenAI Worker Agent | local worker context 019x | No | owns implementation
 Critic | Opus Critic | opus critic session | No | owns risk scan
 Quality Gate | Opus Gate | opus gate session | No | owns gate
 

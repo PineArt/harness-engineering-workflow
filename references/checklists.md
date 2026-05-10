@@ -65,9 +65,9 @@ Missing this rule before implementation proceeds is a fatal `Boundary Integrity`
 ### Advisor Constraints
 
 - `Advisor` is optional and advisory-only.
-- `Advisor` can propose direction, trade-offs, debate positions, and options, but it does not satisfy `Critic` or `Quality Gate`.
+- `Advisor` can propose direction, trade-offs, debate positions, and options, but it does not satisfy `Implementer`, `Critic`, or `Quality Gate`.
 - External `Advisor` output does not change publish-separation requirements.
-- `Advisor` can own `Critic` or `Quality Gate` only when explicitly assigned to that role and producing that role's required artifact.
+- If the same accountable owner is needed for implementation, critique, or gate work, assign that owner to the phase-critical role and omit the separate `Advisor` row.
 
 ### Blocking Gates
 
@@ -138,11 +138,13 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Quality Gate` is explicitly assigned for any publishable `Lite` or `Full` workflow
 - [ ] `Quality Gate` uses an independent context boundary separate from the implementation context for any publishable `Lite` or `Full` workflow
 - [ ] `Orchestrator` does not own `Implementer` or `Quality Gate` for any publishable `Lite` or `Full` workflow
+- [ ] `Orchestrator` did not silently execute phase-critical `Implementer`, `Runtime Verifier`, publish/commit/submit, or `Quality Gate` actions assigned to another owner
 - [ ] `Main Codex` using another execution surface is not counted as a distinct `Implementer` owner from `Main Codex` orchestration
 - [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
 - [ ] publishable `Lite` workflows are backed by at least 3 distinct independent context boundaries for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] external `Critic` coverage without external `Quality Gate` coverage in publishable `Lite` satisfies the `External-Critic-Only Quality Gate Rule`; the general same-owner exception does not apply to this failure mode
-- [ ] `Advisor` output is not counted as `Critic`, `Quality Gate`, or publish-separation evidence unless that owner is explicitly assigned to the role and produces the required artifact
+- [ ] `Advisor` output is not counted as `Implementer`, `Critic`, `Quality Gate`, or publish-separation evidence
+- [ ] `Advisor` does not resolve to the same accountable owner as `Implementer`, `Critic`, or `Quality Gate`
 - [ ] any shared `Context Boundary` rows also share the same `Owner`
 - [ ] if `Critic` and `Quality Gate` share an owner, the role table notes explain why stronger separation is unnecessary
 - [ ] publishable `Full` workflows use at least 3 distinct owners

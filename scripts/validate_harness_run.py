@@ -24,6 +24,20 @@ TOOL_OWNER_RE = re.compile(
     r")\b",
     re.I,
 )
+CLAUDE_IMPLEMENTER_RE = re.compile(r"\b(claude|opus|sonnet|haiku)\b", re.I)
+EXPLICIT_MODEL_EXCEPTION_RE = re.compile(
+    r"\b(?:model|implementer|implementation)[- ]?(?:exception|override)\b|"
+    r"\buser[- ]?approved[- ]?(?:model|implementer|implementation)[- ]?(?:exception|override)\b",
+    re.I,
+)
+SMALL_MODEL_RE = re.compile(
+    r"\b("
+    r"small[- ]?model|fast[- ]?model|"
+    r"(?:gpt|o[0-9]|claude|gemini|llama|mistral|qwen|deepseek|grok)[\w.-]*[- ](?:mini|nano|flash|haiku)|"
+    r"(?:mini|nano|flash|haiku)[- ][\w.-]*(?:model|agent|delegate|worker|reviewer|gate)"
+    r")\b",
+    re.I,
+)
 CODEX_OWNER_RE = re.compile(r"\b(main )?codex( current thread| main| validation tools)?\b", re.I)
 CURRENT_CONTEXT_RE = re.compile(
     r"\b(current (codex )?(thread|context)|same (codex )?(thread|context|instance)|main codex|codex current thread)\b",
@@ -70,6 +84,20 @@ PATH_TOKEN_RE = re.compile(
 )
 LOCATOR_TOKEN_RE = re.compile(r"(?i)(:\d+|#[\w.-]+|@[0-9a-f]{7,40}|\bcommit\s+[0-9a-f]{7,40}\b|\bartifact\s*:)")
 CONTEXT_PRESSURE_RE = re.compile(r"(?i)\b(auto[- ]?compact|compacted|context pressure|context overload|token pressure)\b")
+KNOWN_ROLE_KEYS = {
+    "orchestrator",
+    "implementer",
+    "critic",
+    "quality_gate",
+    "runtime_verifier",
+    "advisor",
+    "source_analyst",
+    "principle_mapper",
+    "workflow_designer",
+    "template_editor",
+    "publish_worker",
+    "human_decision_maker",
+}
 
 
 @dataclass
@@ -263,7 +291,7 @@ def _parse_role_rows(s1_text: str) -> dict[str, RoleRow]:
             continue
         role = cells[0]
         role_key = _role_key(role)
-        if role_key not in {"orchestrator", "implementer", "critic", "quality_gate"}:
+        if role_key not in KNOWN_ROLE_KEYS:
             continue
         owner = cells[1] if len(cells) > 1 else ""
         boundary = cells[2] if len(cells) > 2 else ""
@@ -283,6 +311,22 @@ def _role_key(role: str) -> str:
         return "implementer"
     if normalized.startswith("critic"):
         return "critic"
+    if normalized.startswith("runtime_verifier"):
+        return "runtime_verifier"
+    if normalized.startswith("advisor"):
+        return "advisor"
+    if normalized.startswith("source_analyst"):
+        return "source_analyst"
+    if normalized.startswith("principle_mapper"):
+        return "principle_mapper"
+    if normalized.startswith("workflow_designer"):
+        return "workflow_designer"
+    if normalized.startswith("template_editor"):
+        return "template_editor"
+    if normalized.startswith("publish_worker"):
+        return "publish_worker"
+    if normalized.startswith("human_decision_maker"):
+        return "human_decision_maker"
     return normalized
 
 
@@ -342,6 +386,14 @@ def _canonical_owner(row: RoleRow) -> str:
     if CODEX_OWNER_RE.search(combined) or CURRENT_CONTEXT_RE.search(combined):
         return "main codex"
     return _norm(row.owner)
+
+
+def _combined_role_text(row: RoleRow) -> str:
+    return " ".join([row.role, row.owner, row.boundary, row.shared, row.notes])
+
+
+def _model_posture_text(row: RoleRow) -> str:
+    return " ".join([row.owner, row.notes])
 
 
 def _is_publish_intent(value: str) -> bool:
@@ -705,6 +757,41 @@ def validate_run(
         elif not run.roles[role].owner:
             errors.append(f"S1_OWNER_MISSING: role `{role}` has no accountable owner.")
 
+    if "implementer" in run.roles:
+        impl_text = _model_posture_text(run.roles["implementer"])
+        if CLAUDE_IMPLEMENTER_RE.search(impl_text) and not EXPLICIT_MODEL_EXCEPTION_RE.search(impl_text):
+            warnings.append(
+                "S1_IMPLEMENTER_MODEL_POSTURE: Implementer appears to be Claude/Opus-family; prefer GPT/Codex for implementation or record an explicit user-approved exception in S1 notes."
+            )
+
+    if "advisor" in run.roles:
+        advisor_owner = _canonical_owner(run.roles["advisor"])
+        for role_key, code in [
+            ("implementer", "S1_ADVISOR_IMPLEMENTER_COLLISION"),
+            ("critic", "S1_ADVISOR_CRITIC_COLLISION"),
+            ("quality_gate", "S1_ADVISOR_GATE_COLLISION"),
+        ]:
+            if role_key not in run.roles:
+                continue
+            if advisor_owner != _canonical_owner(run.roles[role_key]):
+                continue
+            errors.append(
+                f"{code}: Advisor and {run.roles[role_key].role} resolve to the same accountable owner; Advisor output does not satisfy that role's ownership."
+            )
+
+    if "quality_gate" in run.roles:
+        gate_text = _model_posture_text(run.roles["quality_gate"])
+        if SMALL_MODEL_RE.search(gate_text):
+            warnings.append(
+                "S1_GATE_MODEL_TIER_WEAK: Quality Gate appears to use a small/fast model; final gate decisions should use a stronger model or explicitly justify the exception."
+            )
+
+    for source_role in ["source_analyst", "critic"]:
+        if source_role in run.roles and SMALL_MODEL_RE.search(_model_posture_text(run.roles[source_role])):
+            warnings.append(
+                f"S1_{source_role.upper()}_MODEL_TIER_WEAK: `{run.roles[source_role].role}` appears to use a small/fast model for source-fidelity-heavy review; use a stronger model or record why the slice is bounded."
+            )
+
     s7_claims_publish = _has_publish_claim(run.s7_text + "\n" + run.s8_text)
 
     if not run.publish_intent:
@@ -801,7 +888,7 @@ def validate_run(
         for idx, row in enumerate(task_rows, start=1):
             if not row.get("owner", "").strip():
                 warnings.append(f"S3_TASK_ROW_OWNER_MISSING: Task Graph row {idx} has no Owner field.")
-            elif _role_key(row.get("owner", "")) not in {"orchestrator", "implementer", "critic", "quality_gate", "runtime_verifier", "advisor", "source_analyst", "workflow_designer", "template_editor", "human_decision_maker"}:
+            elif _role_key(row.get("owner", "")) not in KNOWN_ROLE_KEYS:
                 warnings.append(
                     f"S3_TASK_ROW_OWNER_UNRECOGNIZED: Task Graph row `{row.get('task', idx)}` has owner `{row.get('owner')}` that may not map to a known role."
                 )
@@ -882,6 +969,9 @@ def validate_run(
 def _run_self_tests(script: Path) -> int:
     repo = script.parent.parent
     cases = {
+        "tests/fixtures/invalid/advisor-critic-collision": False,
+        "tests/fixtures/invalid/advisor-gate-collision": False,
+        "tests/fixtures/invalid/advisor-implementer-collision": False,
         "tests/fixtures/invalid/corpview-regression": False,
         "tests/fixtures/invalid/missing-intent-publish-s7": False,
         "tests/fixtures/invalid/missing-continuation-current": False,
@@ -902,9 +992,18 @@ def _run_self_tests(script: Path) -> int:
         "tests/fixtures/invalid/telemetry-mode-template": False,
         "tests/fixtures/valid/single-runbook": True,
         "tests/fixtures/valid/separate-files": True,
+        "tests/fixtures/valid/model-tier-warnings": True,
         "tests/fixtures/valid/telemetry-on-minimal": True,
         "tests/fixtures/valid/telemetry-on-profiler-warning": True,
         "tests/fixtures/valid/telemetry-on-step-exit-summary": True,
+    }
+    expected_warnings = {
+        "tests/fixtures/valid/model-tier-warnings": [
+            "S1_IMPLEMENTER_MODEL_POSTURE",
+            "S1_GATE_MODEL_TIER_WEAK",
+            "S1_SOURCE_ANALYST_MODEL_TIER_WEAK",
+            "S1_CRITIC_MODEL_TIER_WEAK",
+        ],
     }
     failures: list[str] = []
     for rel, should_pass in cases.items():
@@ -920,6 +1019,12 @@ def _run_self_tests(script: Path) -> int:
             print(f"  WARN {warn}")
         if passed != should_pass:
             failures.append(rel)
+            continue
+        for expected_warning in expected_warnings.get(rel, []):
+            if not any(expected_warning in warning for warning in warnings):
+                print(f"  MISSING WARN {expected_warning}")
+                failures.append(rel)
+                break
     if failures:
         print("Self-test failed for: " + ", ".join(failures), file=sys.stderr)
         return 1

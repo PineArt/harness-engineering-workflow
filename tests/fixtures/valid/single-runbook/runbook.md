@@ -11,7 +11,7 @@ Continuation Packet: [`CURRENT.md`](CURRENT.md)
 Role | Owner | Context Boundary | Shared? | Notes
 --- | --- | --- | --- | ---
 Orchestrator | Main Codex | current Codex thread | No | owns run workspace
-Implementer | Claude Delegate Implementer | delegate implementation session | No | owns patch
+Implementer | OpenAI Worker Implementer | delegate implementation session | No | owns patch
 Critic | Claude Delegate Critic | delegate critic session | No | owns risk scan
 Quality Gate | Claude Delegate Gate | delegate gate session | No | owns final gate
 
