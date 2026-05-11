@@ -41,6 +41,8 @@ For publishable Lite or Full, Orchestrator must not own Implementer or Quality G
 Main Codex using any tool surface, protocol, credential, host, path, session, sandbox, runtime, or execution environment is still Main Codex; execution surfaces do not create independent owners by themselves.
 Delegation counts only when execution crosses an independent context boundary.
 Different role labels, tool calls, or spawns that remain within the same context do not count.
+Use the main thread for high-value orchestration: architecture choices, slice boundaries, owner assignment, Advisor or Opus debate, review synthesis, integration decisions, evidence acceptance, and recovery checkpoints.
+In Lite and Full, Orchestrator may make only tiny coordination edits outside active Implementer writable areas. Do not edit files owned by an active implementation slice; record a review note, follow-up, or refreshed task instead.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
 If context starts to overload, actively recommend a subagent or subtask split instead of stuffing more into the same window.
 ```
@@ -56,7 +58,7 @@ Tasks:
 3. Design the Task Graph, including parallel blocks, serial blocks, human decision points, and implementation slices.
 4. Own and declare the `Run Workspace` for Lite and Full before S0, including active path, completed path, artifact index, step-closure gates, and exception paths.
 5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
-6. For every implementation task, split to one behavior change or one tightly related file cluster, and name a `Validation Checkpoint` such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record.
+6. For every implementation task, split to one behavior change or one tightly related file cluster, name owned files or `Writable Area`, add a `Do Not Touch` boundary when nearby files are risky, and name a `Validation Checkpoint` such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record.
 7. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
 8. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
 9. Maintain `CURRENT.md` and append-only continuation checkpoints; refresh before closing S1, S3, S5, and S7, and before/after delegated work that crosses a new independent context boundary when feasible.
@@ -68,7 +70,7 @@ Tasks:
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
-Do not execute phase-critical operational actions, including implementation, worktree creation or cleanup, task-specific environment repair, live verification, publish/upload/restart, scoped commit/check-in/submit, publish record production, or gate verdicts. Assign or use the explicit owner and integrate their outputs instead.
+Do not execute phase-critical operational actions, including implementation, worktree creation or cleanup, task-specific environment repair, live verification, publish/upload/restart, scoped commit/check-in/submit, publish record production, or gate verdicts. Assign or use the explicit owner and integrate their outputs instead. If a needed code edit is inside an active Implementer writable area, queue it as review feedback or refresh the task assignment rather than editing the file directly.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
 ```
 
@@ -135,6 +137,7 @@ Tasks:
 5. `Outputs` must match the named artifact in `Task Graph`, and may be written only to the task's assigned `Writable Area`.
 6. Execute only the assigned implementation slice. Do not fuse adjacent slices unless `Orchestrator` refreshes `S3`.
 7. Record the assigned `Validation Checkpoint` result in the execution output.
+8. Respect all `Do Not Touch` boundaries. If a required change falls outside the assigned writable area, stop and ask `Orchestrator` to refresh the slice instead of editing across ownership lines.
 
 If you fail:
 First identify whether the missing piece is tooling, constraints, documentation, tests, or a feedback loop.

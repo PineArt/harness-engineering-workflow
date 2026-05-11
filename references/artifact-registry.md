@@ -106,6 +106,7 @@ The table below is the canonical default matrix. `Lite` and `Full` runs must als
 The run-specific mapping must not duplicate the full canonical matrix. It records:
 - whether canonical defaults apply
 - phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, submit, and check-in owner resolution
+- implementation writable areas, active owner locks, and any `Do Not Touch` boundaries needed to prevent main-thread and Implementer write conflicts
 - any non-default owner override, with a brief reason
 - any action that has no canonical default, which `Orchestrator` must assign before that action starts
 
@@ -118,6 +119,7 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Role assignment, owner separation, and independent context-boundary requests | `Orchestrator` | `Role Owner Table` and `Task Graph` |
 | Applying `External-Critic-Only Quality Gate Rule` | `Orchestrator` | `Role Owner Table` notes and `Decision Log` |
 | Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
+| Implementation slice ownership and active writable-area locks | `Orchestrator` assigns and records; `Implementer` respects assigned scope | `Task Graph`, `Run-Specific Responsibility Matrix`, and `Execution Output Record` |
 | Task execution and execution artifacts | assigned task owner | `Execution Output Record` |
 | Real state-surface validation | `Runtime Verifier`; if absent, `Orchestrator` must assign one or record why not required | `Runtime Evidence Record` or `Decision Log` |
 | Publish, upload, restart, scoped commit, check-in, submit, publish record production, or remote status confirmation | `Publish Worker` or explicit publish/check-in owner assigned in `S1`; `Orchestrator` integrates evidence only and does not execute these actions | `Publish Output Record`, commit evidence, publish evidence, and `Decision Log` |
@@ -144,6 +146,7 @@ Default ownership does not authorize `Orchestrator` to perform a phase-critical 
 Canonical Defaults: Apply | Partially overridden | Not enough
 
 Phase-Critical Action | Owner Resolution | Required Record | Override? | Notes
+Implementation writable areas and active owner locks | assigned Implementer or explicit task owner; Orchestrator does not edit active owned files | Task Graph and Execution Output Record | No | Include any Do Not Touch boundaries
 S6 integration closure | Orchestrator unless explicitly overridden | Integration Ledger and Decision Log | No |
 S7 gate verdict | Quality Gate | Gate Decision | No |
 S7 gate outcome append and replay coordination | Orchestrator | Decision Log and refreshed downstream artifacts | No |
@@ -163,6 +166,7 @@ Field notes:
 - `Canonical Defaults` is `Apply` only when every unlisted action uses the canonical default matrix above.
 - `Phase-Critical Action` rows may use the default owner, but they must still be present so S6, S7, S8, gate, publish, commit, submit, and check-in responsibility is mechanically inspectable.
 - `Owner Resolution` must resolve to a role or owner from the `Role Owner Table`, except for deferred `Gate Decision` fields that must later name `Rework Owner` or `Re-gate Owner`.
+- implementation writable-area rows must name the active owner and enough path or module detail to mechanically prevent overlapping edits; `Do Not Touch` boundaries are required when adjacent files are easy to confuse with the slice.
 - phase-critical operational actions listed in `SKILL.md` Operating Rules must resolve to a non-`Orchestrator` owner before the action starts; if discovered after S1, return to S1 and refresh this matrix before execution.
 - `Override?` is `No`, `Yes`, or `Deferred field`.
 - each `Explicit Overrides` entry needs a short reason; do not add reasons for default assignments.
