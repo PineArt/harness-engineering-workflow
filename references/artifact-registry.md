@@ -120,7 +120,8 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
 | Task execution and execution artifacts | assigned task owner | `Execution Output Record` |
 | Real state-surface validation | `Runtime Verifier`; if absent, `Orchestrator` must assign one or record why not required | `Runtime Evidence Record` or `Decision Log` |
-| Publish, upload, restart, scoped commit, check-in, submit, or remote status confirmation | `Publish Worker` or explicit publish/check-in owner; otherwise the run-specific matrix must justify the fallback owner | `Publish Output Record`, commit evidence, publish evidence, and `Decision Log` |
+| Publish, upload, restart, scoped commit, check-in, submit, publish record production, or remote status confirmation | `Publish Worker` or explicit publish/check-in owner assigned in `S1`; `Orchestrator` integrates evidence only and does not execute these actions | `Publish Output Record`, commit evidence, publish evidence, and `Decision Log` |
+| Worktree creation, worktree cleanup, and task-specific environment repair in `Lite` or `Full` | assigned task owner, typically `Implementer`, `Publish Worker`, or a named bootstrap owner; `Orchestrator` declares requirements, validates accessibility, and records the result | `Decision Log` and task execution record |
 | Risk scan and revision requests | `Critic` | `Risk Register` |
 | Advisory debate or option generation | `Advisor` | `Advisory Note` |
 | Integration and conflict resolution | `Orchestrator` | `Integration Ledger` and `Decision Log` |
@@ -129,13 +130,13 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Re-gate after corrective work | `Re-gate Owner` named in `Gate Decision` | fresh `Gate Decision` |
 | Replay coordination after `Fail` or `Conditional Pass` | `Orchestrator` | `Decision Log` and refreshed downstream artifacts |
 | Missing `artifact-registry.md` or `checklists.md` restoration | `Orchestrator`; `Quality Gate` blocks gate progress until restored | `Decision Log` |
-| Publish readiness verification | `Orchestrator` unless a publish owner is explicitly assigned | publish checklist and `Decision Log` |
+| Publish readiness verification | `Orchestrator`; publish execution ownership is separate | publish checklist and `Decision Log` |
 | `Published Version` production | `Template Editor` or explicit publish owner | `Published Version` |
-| Commit, check-in, or submit action after gate pass | explicit publish/check-in owner; otherwise `Orchestrator` for `Lite`, `Template Editor` or publish owner for `Full` | commit, submit, or publish evidence plus `Decision Log` |
+| Commit, check-in, or submit action after gate pass | explicit publish/check-in owner assigned in `S1`; if no explicit owner was assigned, `Orchestrator` stops and returns to `S1` before any commit, check-in, or submit action starts | commit, submit, or publish evidence plus `Decision Log` |
 | Final version freeze or human arbitration | `Human Decision Maker` when active; otherwise `Orchestrator` records the accepted decision | `Decision Log` |
 | Moving or copying durable run records from `exec-plans/active/` to `exec-plans/completed/` | `Orchestrator` unless publish owner is assigned | `Decision Log` and preserved artifact index |
 
-Default ownership does not authorize `Orchestrator` to perform a phase-critical action that the run-specific matrix assigned to another owner. If implementation, runtime verification, publish/commit/submit, or gate verdict work is assigned elsewhere, `Orchestrator` integrates and records evidence only.
+Default ownership does not authorize `Orchestrator` to perform a phase-critical operational action in `Lite` or `Full`. If implementation, runtime verification, worktree creation or cleanup, task-specific environment repair, live verification, publish, upload, restart, scoped commit, check-in, submit, publish record production, remote status confirmation, or gate verdict work is required, `Orchestrator` assigns or uses the explicit owner, then integrates and records evidence only.
 
 ### Run-Specific Responsibility Matrix
 
@@ -148,8 +149,8 @@ S7 gate verdict | Quality Gate | Gate Decision | No |
 S7 gate outcome append and replay coordination | Orchestrator | Decision Log and refreshed downstream artifacts | No |
 Gate-requested rework | Rework Owner named in Gate Decision from an owner already allowed by this mapping | refreshed artifact from Return Step | Deferred field | Gate must name the owner when needed
 Re-gate after corrective work | Re-gate Owner named in Gate Decision from an owner already allowed by this mapping | fresh Gate Decision | Deferred field | Gate must name the owner when needed
-S8 publish readiness verification | Orchestrator unless explicit publish owner is assigned | publish checklist and Decision Log | No |
-S8 publish, commit, check-in, or submit | explicit publish/check-in owner; otherwise Orchestrator for Lite, Template Editor or publish owner for Full published assets | Published Version, Decision Log, commit or publish evidence when applicable | No |
+S8 publish readiness verification | Orchestrator; publish execution ownership is separate | publish checklist, integrated Publish Output Record when present, and Decision Log | No |
+S8 publish, commit, check-in, or submit | explicit publish/check-in owner assigned in S1; if absent, stop and return to S1 before publish execution | Published Version, Decision Log, commit or publish evidence when applicable | No |
 
 Explicit Overrides:
 Action:
@@ -162,6 +163,7 @@ Field notes:
 - `Canonical Defaults` is `Apply` only when every unlisted action uses the canonical default matrix above.
 - `Phase-Critical Action` rows may use the default owner, but they must still be present so S6, S7, S8, gate, publish, commit, submit, and check-in responsibility is mechanically inspectable.
 - `Owner Resolution` must resolve to a role or owner from the `Role Owner Table`, except for deferred `Gate Decision` fields that must later name `Rework Owner` or `Re-gate Owner`.
+- phase-critical operational actions listed in `SKILL.md` Operating Rules must resolve to a non-`Orchestrator` owner before the action starts; if discovered after S1, return to S1 and refresh this matrix before execution.
 - `Override?` is `No`, `Yes`, or `Deferred field`.
 - each `Explicit Overrides` entry needs a short reason; do not add reasons for default assignments.
 - if the run cannot resolve a phase-critical action during S1, S1 does not close.

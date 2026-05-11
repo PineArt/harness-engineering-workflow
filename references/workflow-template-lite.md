@@ -63,7 +63,7 @@ Rules:
 - `Telemetry Mode: Off` is valid by default; when `On`, use the optional `Run Telemetry` and `Run Profiler` schemas in [artifact-registry.md](artifact-registry.md)
 - `validate_harness_run.py` requires a `Telemetry Mode` declaration; `Telemetry Mode: On` also validates the event log path and basic JSONL structure
 - `Orchestrator` creates `CURRENT.md` and the first append-only checkpoint under `checkpoints/` before S1 validation runs; the canonical schema is `Continuation Packet` in [artifact-registry.md](artifact-registry.md)
-- if the workspace cannot be created or declared, `Orchestrator` stops before `S0` and fixes the environment
+- if the workspace cannot be created or declared, `Orchestrator` stops before `S0`, records the gap, and assigns any task-specific repair to an accountable owner
 - `S0` closes only when `Task Brief`, `Run Workspace`, and the initial `Decision Log` entry are written and field-valid
 - if the run imports or continues from prior non-publish exploration, `S0` closure must record the imported material as evidence or context only, and the `Task Brief` must state the current run's publish goal and scope independently
 - `Orchestrator` enforces step-closure gates and must return to the failed step if an artifact is missing, incomplete, field-invalid, or written to an unvalidated equivalent location
@@ -121,6 +121,7 @@ Notes:
 - In a publishable `Lite` workflow, `Orchestrator` may not own `Implementer` or `Quality Gate`.
 - In a publishable `Lite` workflow, `Implementer` and `Quality Gate` may not share the same owner.
 - In a publishable `Lite` workflow, `Quality Gate` must be explicitly assigned and must use an independent context boundary separate from the implementation context.
+- In `Lite`, phase-critical operational actions listed in `SKILL.md` Operating Rules, including worktree creation or cleanup, task-specific environment repair, live verification, upload, restart, scoped commit, check-in, submit, and publish record production, must resolve to a non-`Orchestrator` owner before the action starts. If such an action is discovered after `S1`, return to `S1` and refresh the run-specific responsibility matrix before execution.
 - If an external context is assigned to `Critic` but not `Quality Gate` and the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` from [checklists.md](checklists.md) during `S1`.
 - `Critic` and `Quality Gate` may be combined only when they share the same owner and the notes record why stronger separation is unnecessary for this task; this exception does not apply under the `External-Critic-Only Quality Gate Rule`.
 - `Critic` and `Quality Gate` may not be omitted in this tier.
@@ -137,8 +138,8 @@ S7 gate verdict | Quality Gate | Gate Decision | No |
 S7 gate outcome append and replay coordination | Orchestrator | Decision Log and refreshed downstream artifacts | No |
 Gate-requested rework | Rework Owner named in Gate Decision from an owner allowed by this mapping | refreshed artifact from Return Step | Deferred field |
 Re-gate after corrective work | Re-gate Owner named in Gate Decision from an owner allowed by this mapping | fresh Gate Decision | Deferred field |
-S8 publish readiness verification | Orchestrator unless explicit publish owner is assigned | publish checklist and Decision Log | No |
-S8 publish, commit, submit, or check-in | explicit publish/check-in owner, otherwise Orchestrator | Published Version, Decision Log, commit or publish evidence when applicable | No |
+S8 publish readiness verification | Orchestrator; publish execution ownership is separate | publish checklist, integrated Publish Output Record when present, and Decision Log | No |
+S8 publish, commit, submit, or check-in | explicit publish/check-in owner assigned in S1; if absent, stop and return to S1 before publish execution | Published Version, Decision Log, commit or publish evidence when applicable | No |
 
 Explicit Overrides:
 Action:
@@ -343,8 +344,9 @@ If [artifact-registry.md](artifact-registry.md) is temporarily unavailable:
 
 ## Step S8. Publish
 
-In `Lite`, `Orchestrator` is the default publish owner and verifies the required artifacts before publish unless another publish owner is assigned explicitly.
-When `S1` assigns a `Publish Worker` or another explicit publish/check-in owner, `Orchestrator` integrates that owner's `Publish Output Record` and does not execute the assigned upload, restart, scoped commit, check-in, submit, or remote status-confirmation steps itself.
+In `Lite`, `Orchestrator` verifies publish readiness and integrates evidence at `S8`.
+`Orchestrator` does not execute upload, restart, scoped commit, check-in, submit, publish record production, or remote status confirmation.
+If any of those actions are in scope and no `Publish Worker` or explicit publish/check-in owner was assigned in `S1`, `Orchestrator` stops, records the missing owner in `Decision Log`, returns to `S1`, and does not proceed with publish execution until the owner is assigned and `S1` re-closes.
 Single-owner `Lite` is a fatal `Boundary Integrity` failure. Do not publish; tell the user final-result quality is uncontrollable.
 If the required independent context boundaries cannot be established for the run, or owner separation exists only on paper without real context separation, treat that as a fatal `Boundary Integrity` failure and stop.
 Do not enter `S8` unless the latest `Gate Decision` verdict is `Pass`.
@@ -359,6 +361,7 @@ Before publish, at minimum have:
 - [ ] publishable runs have separate accountable owners for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] publishable runs have at least 3 distinct context boundaries backing those owners
 - [ ] tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments were not counted as independent accountable owners by themselves
+- [ ] phase-critical operational actions in scope have explicit non-`Orchestrator` owners assigned before execution
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

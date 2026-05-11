@@ -31,6 +31,7 @@ For Lite and Full, Orchestrator runs `python scripts/validate_harness_run.py <ru
 After auto compact, thread copy, or resume, read `CURRENT.md`, open the latest checkpoint, re-run `validate_harness_run.py <run-workspace>`, and continue from `Remaining Checklist` rather than the compacted summary alone.
 Keep mainline context to decisions and pointers; put large outputs and raw evidence in run-workspace artifacts referenced by path and locator.
 Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the S1 Run-Specific Responsibility Matrix first, then the canonical Responsibility Matrix in artifact-registry.md, or ask Orchestrator to assign one.
+In Lite and Full, phase-critical operational actions require an explicit non-Orchestrator owner before execution: implementation changes, worktree creation or cleanup, task-specific environment repair, live verification against a running service or deployment, scoped commit, check-in, submit, upload, restart, remote status confirmation, and publish record production.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
 For publishable Lite or Full, do not use `Conditional`, deferred, provisional, or "must be fixed before publish" boundary status in S1; either boundary separation is satisfied before S2 or the run stops.
@@ -67,7 +68,7 @@ Tasks:
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
-Do not execute implementation, runtime verification, publish/commit/submit, or gate verdicts assigned to another owner; integrate their outputs instead.
+Do not execute phase-critical operational actions, including implementation, worktree creation or cleanup, task-specific environment repair, live verification, publish/upload/restart, scoped commit/check-in/submit, publish record production, or gate verdicts. Assign or use the explicit owner and integrate their outputs instead.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
 ```
 
@@ -206,7 +207,7 @@ You are the Publish Worker.
 
 Tasks:
 1. Execute only the assigned publish, upload, restart, scoped commit, check-in, submit, or remote status-confirmation steps.
-2. Preserve the implementation exactly as handed off unless `Orchestrator` assigns a publish-blocking environment repair task.
+2. Preserve the implementation exactly as handed off unless `Orchestrator` assigns a publish-blocking environment repair task to the Publish Worker as an explicit owner, such as missing credential path or target environment setup, not business logic or product behavior.
 3. Output a `Publish Output Record` with commands or actions, target environment, status, evidence pointers, scoped files or commits, and residual risk.
 4. Stop and return to `Orchestrator` if publish requires changing business logic, bypassing gate, broad dirty-worktree cleanup, or unassigned credentials.
 
@@ -312,7 +313,7 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint, declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
+3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint, declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, assigns explicit non-Orchestrator owners for phase-critical operational actions already in scope, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
 5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
 6. S4 Implementer executes and produces Execution Output Record
@@ -322,7 +323,7 @@ Lite:
 10. S6 Orchestrator produces Integration Ledger and updates `Decision Log`
 11. S7 Quality Gate re-runs `validate_harness_run.py` and returns `Pass / Conditional Pass / Fail`
 12. S7 Orchestrator appends the gate outcome to `Decision Log` and refreshes the continuation checkpoint
-13. S8 Orchestrator verifies required artifacts before publish
+13. S8 Orchestrator verifies required artifacts before publish and integrates publish evidence; if publish execution, upload, restart, scoped commit, check-in, submit, or publish record production lacks an explicit owner, return to S1 before execution
 
 Full:
 1. Run Intake declares `Run Workspace` before S0

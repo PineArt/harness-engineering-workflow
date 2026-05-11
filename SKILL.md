@@ -62,7 +62,7 @@ Agent identifiers may be recorded when available, but they are supporting eviden
 Before any concrete workflow action starts, it must have an accountable owner. Use the `Responsibility Matrix` in [references/artifact-registry.md](references/artifact-registry.md) whenever ownership is unclear.
 For `Lite` and `Full`, `S1` must include both a `Role Owner Table` and a `Run-Specific Responsibility Matrix`; the role table records role/context boundaries, while the run-specific matrix resolves concrete action ownership.
 The run-specific matrix must not duplicate the full canonical matrix. It must make S6, S7, S8, gate, rework, re-gate, replay, publish, commit, submit, and check-in ownership mechanically inspectable, and it must list any non-default owner override with a brief reason.
-If a phase-critical action cannot resolve to the S1 mapping or to a canonical default before `S2`, `Orchestrator` stops before task-specific downstream work starts.
+If a phase-critical action cannot resolve to the S1 mapping or to a canonical default before `S2`, `Orchestrator` stops before task-specific downstream work starts. Phase-critical operational actions listed in Operating Rules have no `Orchestrator` fallback in `Lite` or `Full`.
 For `Lite` and `Full`, `Orchestrator` maintains an append-only `Continuation Packet` in the run workspace: `CURRENT.md` points to the latest `checkpoints/NNNN-S<step>.md` file. It must exist before `S1` validation runs, and `S1`, `S3`, `S5`, and `S7` close only after a fresh checkpoint with an incremented `Checkpoint Seq`.
 After auto compact, thread copy, or resume, do not continue from a chat summary alone. Read `CURRENT.md`, open the latest checkpoint, re-run `validate_harness_run.py <run-workspace>`, then continue from the remaining checklist and evidence pointers.
 Keep the mainline thin: record decisions and pointers in the active thread, and move bulky tool output, model transcripts, traces, screenshots, and raw evidence into run-workspace artifacts referenced by path and locator.
@@ -84,18 +84,19 @@ Run workspace posture:
 ## Operating Rules
 
 - Human steers; agents execute.
-- `Orchestrator` owns environment-gap repair in `Lite` and `Full`; the single `Owner` owns it in `Ultra Lite` or escalates before execution.
+- `Orchestrator` identifies environment gaps and assigns repair owners in `Lite` and `Full`; it does not execute task-specific environment repair. The single `Owner` owns environment repair in `Ultra Lite` or escalates before execution.
 - Knowledge not encoded into the repo or task artifacts should be treated as unavailable.
 - Keep `AGENTS.md` short and navigational.
 - Prefer append-only context growth over repeatedly rewriting stable prefixes.
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
-- `Orchestrator` assigns `Runtime Verifier` or records why no verifier is required for any change that depends on pre-existing state.
-- Assign `Publish Worker` when publish requires remote upload, restart, live-service status confirmation, scoped commit, check-in, submit, or a separate publish record that should not be executed in the `Orchestrator` context.
+- For any `Lite` or `Full` run where publish, upload, restart, live-service status confirmation, scoped commit, check-in, submit, or publish record production is in scope, `S1` must assign a `Publish Worker` or explicit publish/check-in owner. These actions may not be executed in the `Orchestrator` context.
 - If a single agent is nearing context overload, `Orchestrator` splits work into subagents or smaller owned tasks.
 - For `Lite` and `Full`, `Orchestrator` slices implementation work in `S3` before handing it to `Implementer`: each implementation node is one behavior change or one tightly related file cluster, and each has a named `Validation Checkpoint`.
 - When delegation is required, `Orchestrator` ensures the work crosses independent context boundaries; do not simulate separation with different role labels inside one context.
-- `Orchestrator` coordinates, slices, integrates, and records publish evidence; it does not execute phase-critical implementation, runtime verification, publish/commit/submit, or gate verdicts assigned to another owner.
-- If an assigned phase-critical action is performed inside the `Orchestrator` context, treat it as a fatal `Boundary Integrity` failure even when the owner column names someone else.
+- `Orchestrator` coordination actions in `Lite` and `Full` are limited to writing and maintaining run-workspace artifacts, running harness validators and read-only workspace inspection for step-closure or artifact validation, assigning owners, recording context boundaries, enforcing step-closure gates, integrating evidence produced by other owners, and moving completed run records between `exec-plans/active/` and `exec-plans/completed/`.
+- Phase-critical operational actions in `Lite` and `Full` require an explicit non-`Orchestrator` owner assigned in `S1` before the action starts: implementation changes, worktree creation or cleanup, task-specific environment repair, live verification against a running service or deployment, scoped commit, check-in, submit, upload, restart, remote status confirmation, and publish record production.
+- If a phase-critical operational action has no assigned owner when it must start, `Orchestrator` stops and returns to `S1` to assign one. `Orchestrator` does not execute the action as a fallback.
+- If a phase-critical operational action is performed inside the `Orchestrator` context, treat it as a fatal `Boundary Integrity` failure even when the owner column names someone else.
 - Shift humans from line-by-line review to result acceptance whenever the validation surface is strong enough.
 
 ## What To Read
@@ -186,7 +187,7 @@ Lite:
 - step-closure records for `S0`, `S1`, `S2`, and `S3` before the next step starts
 - one `Execution Output Record`
 - one `Runtime Evidence Record` when correctness depends on pre-existing state or independent dynamic validation
-- one `Publish Output Record` when `Publish Worker` owns upload, restart, scoped commit, check-in, submit, or publish status confirmation
+- one `Publish Output Record` when `Publish Worker` or an explicit publish/check-in owner executes upload, restart, scoped commit, check-in, submit, publish record production, or publish status confirmation
 - one `Risk Register`
 - one `Integration Ledger` with owner and evidence-source fields
 - one `Gate Decision`
