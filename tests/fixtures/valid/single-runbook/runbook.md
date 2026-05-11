@@ -32,6 +32,17 @@ Task | Owner | Context Boundary | Depends On | Outputs | Writable Area | Validat
 --- | --- | --- | --- | --- | --- | --- | ---
 Focused patch slice | Implementer | delegate implementation session | S2 Context Pack | Execution Output Record | src/focused-slice | focused test smoke check | Return to S3
 
+## Delegation Record
+
+Slice ID: Focused patch slice
+Owner: Implementer
+Context Boundary: delegate implementation session
+Scope: Execute the focused patch slice from the Task Graph.
+Allowed Tools: shell, apply_patch, python validator
+Writable Area: src/focused-slice
+Expected Evidence: `runbook.md#S7`
+Delegated At: 2026-05-09T09:12:00+08:00
+
 ## S7 Gate Decision
 
 Verdict: Pass
@@ -52,6 +63,7 @@ Last Updated: 2026-05-09T09:00:00+08:00
 Completed Checklist: Task Brief, Run Workspace, Decision Log
 Remaining Checklist: Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph
 Inflight Delegations: None
+Boundary Violations: None
 Next Action: Write the S1 role table and validate the workspace.
 Blockers: None
 Evidence Pointers: `runbook.md#S1` and `runbook.md#S7`
@@ -68,6 +80,7 @@ Last Updated: 2026-05-09T09:10:00+08:00
 Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix
 Remaining Checklist: Context Pack, Task Graph, Execution Output Record
 Inflight Delegations: None
+Boundary Violations: None
 Next Action: Build the context pack and task graph.
 Blockers: None
 Evidence Pointers: `runbook.md#S1`
@@ -84,6 +97,7 @@ Last Updated: 2026-05-09T09:20:00+08:00
 Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph
 Remaining Checklist: Execution Output Record, Risk Register, Integration Ledger
 Inflight Delegations: None
+Boundary Violations: None
 Next Action: Finish execution and risk scan.
 Blockers: None
 Evidence Pointers: `runbook.md#S7`
@@ -100,6 +114,7 @@ Last Updated: 2026-05-09T09:30:00+08:00
 Completed Checklist: Task Brief, Run Workspace, Decision Log, Role Owner Table, Run-Specific Responsibility Matrix, Context Pack, Task Graph, Execution Output Record, Risk Register, Integration Ledger
 Remaining Checklist: Gate Decision, Publish
 Inflight Delegations: None
+Boundary Violations: None
 Next Action: Run the gate and prepare publish evidence.
 Blockers: None
 Evidence Pointers: `runbook.md#S7`

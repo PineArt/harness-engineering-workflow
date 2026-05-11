@@ -28,10 +28,11 @@ For Ultra Lite, the single Owner writes the goal/scope block and completes `Pref
 For Lite and Full, Orchestrator declares and validates the Run Workspace before S0, writes both Role Owner Table and Run-Specific Responsibility Matrix during S1 before S2, then closes each step from S0 through S3 by writing its required artifact before the next step starts.
 For Lite and Full, Orchestrator maintains `CURRENT.md` plus append-only continuation checkpoints under `checkpoints/`; create the first checkpoint before S1 validation and refresh it at S1, S3, S5, and S7.
 For Lite and Full, Orchestrator runs `python scripts/validate_harness_run.py <run-workspace>` at S1 closure / S2 entry. If it fails, return to S1 before task-specific downstream work.
-After auto compact, thread copy, or resume, read `CURRENT.md`, open the latest checkpoint, re-run `validate_harness_run.py <run-workspace>`, and continue from `Remaining Checklist` rather than the compacted summary alone.
+After auto compact, thread copy, or resume, read `CURRENT.md`, open the latest checkpoint, inspect `Boundary Violations`, re-run `validate_harness_run.py <run-workspace>`, and continue from `Remaining Checklist` rather than the compacted summary alone.
 Keep mainline context to decisions and pointers; put large outputs and raw evidence in run-workspace artifacts referenced by path and locator.
 Every concrete workflow action must have an accountable owner before it starts. If ownership is unclear, use the S1 Run-Specific Responsibility Matrix first, then the canonical Responsibility Matrix in artifact-registry.md, or ask Orchestrator to assign one.
 In Lite and Full, phase-critical operational actions require an explicit non-Orchestrator owner before execution: implementation changes, worktree creation or cleanup, task-specific environment repair, live verification against a running service or deployment, scoped commit, check-in, submit, upload, restart, remote status confirmation, and publish record production.
+In Lite and Full, Delegation-First Lock applies before any task-domain action for a slice: diagnostic/root-cause/exploratory reads, read/search/grep/file inspection, test execution, log review, worktree operation, implementation, verification, publish, commit, check-in, and submit require a field-valid `Delegation Record` naming a non-Orchestrator owner. Orchestrator may inspect run-workspace artifacts for coordination and step closure only.
 If correctness depends on pre-existing state, validate against a real pre-existing state surface rather than an assumed or newly created one.
 If publish separation requires distinct delegated owners, create or request that split before `S2`.
 For publishable Lite or Full, do not use `Conditional`, deferred, provisional, or "must be fixed before publish" boundary status in S1; either boundary separation is satisfied before S2 or the run stops.
@@ -59,18 +60,21 @@ Tasks:
 4. Own and declare the `Run Workspace` for Lite and Full before S0, including active path, completed path, artifact index, step-closure gates, and exception paths.
 5. Assign one unique owner to each agent, record context boundaries for delegated work, note agent identifiers only when useful, and define named `Outputs` plus one unique `Writable Area` for each task.
 6. For every implementation task, split to one behavior change or one tightly related file cluster, name owned files or `Writable Area`, add a `Do Not Touch` boundary when nearby files are risky, and name a `Validation Checkpoint` such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record.
-7. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
-8. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
-9. Maintain `CURRENT.md` and append-only continuation checkpoints; refresh before closing S1, S3, S5, and S7, and before/after delegated work that crosses a new independent context boundary when feasible.
-10. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
-11. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
-12. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
-13. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
-14. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
+7. Write a `Delegation Record` for every diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice before any task-domain action for that slice starts.
+8. During S1, write a `Run-Specific Responsibility Matrix` that resolves S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit owners without copying the full canonical matrix.
+9. Close S0, S1, S2, and S3 only after the required artifact for that step is written and field-valid in the declared workspace or an explicit equivalent location.
+10. Maintain `CURRENT.md` and append-only continuation checkpoints; refresh before closing S1, S3, S5, and S7, and before/after delegated work that crosses a new independent context boundary when feasible.
+11. Track `Boundary Violations` in every checkpoint; on resume, resolve open violations before allowing task-domain work to continue.
+12. Maintain an append-only `Decision Log` from the first round onward, including human decisions, conflict resolution, and gate-requested rework.
+13. Integrate the outputs from all agents at the end. In `Lite`, produce `Integration Ledger` and the latest `Decision Log`. In `Full`, also produce `Unified Draft` and `Open Questions`.
+14. Explicitly identify which parts of the workflow are still blocked on human validation, testing, deployment, or troubleshooting, and prioritize designing an agent-driven loop to close those gaps.
+15. If a change depends on pre-existing state, assign a `Runtime Verifier` or an equivalent runtime-validation task owner instead of leaving that evidence implicit.
+16. In publishable `Lite` or `Full`, apply the `External-Critic-Only Quality Gate Rule` before `S3`.
 
 Prioritize solving environment design problems before pushing agents to work harder.
 Do not substitute for other agents by performing deep specialist analysis on their behalf.
 Do not execute phase-critical operational actions, including implementation, worktree creation or cleanup, task-specific environment repair, live verification, publish/upload/restart, scoped commit/check-in/submit, publish record production, or gate verdicts. Assign or use the explicit owner and integrate their outputs instead. If a needed code edit is inside an active Implementer writable area, queue it as review feedback or refresh the task assignment rather than editing the file directly.
+Do not perform task-domain read, search, grep, file inspection, diagnostic, root-cause, test, log-review, worktree, implementation, verification, publish, commit, check-in, or submit action for a slice before its `Delegation Record` exists.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure rather than simulating distinct subagents on paper.
 ```
 
@@ -136,8 +140,9 @@ Tasks:
 4. Prefer tests, LSP, logs, browsers, or deployment status as external signals to validate results.
 5. `Outputs` must match the named artifact in `Task Graph`, and may be written only to the task's assigned `Writable Area`.
 6. Execute only the assigned implementation slice. Do not fuse adjacent slices unless `Orchestrator` refreshes `S3`.
-7. Record the assigned `Validation Checkpoint` result in the execution output.
-8. Respect all `Do Not Touch` boundaries. If a required change falls outside the assigned writable area, stop and ask `Orchestrator` to refresh the slice instead of editing across ownership lines.
+7. Verify your `Delegation Record` exists and matches your owner, context boundary, writable area, and expected evidence before task-domain reads, diagnostics, tests, implementation, or verification.
+8. Record the assigned `Validation Checkpoint` result in the execution output.
+9. Respect all `Do Not Touch` boundaries. If a required change falls outside the assigned writable area, stop and ask `Orchestrator` to refresh the slice instead of editing across ownership lines.
 
 If you fail:
 First identify whether the missing piece is tooling, constraints, documentation, tests, or a feedback loop.
@@ -258,6 +263,9 @@ Also check:
 - whether `CURRENT.md` points to the latest field-valid continuation checkpoint
 - whether S1 includes a field-valid `Run-Specific Responsibility Matrix` resolving S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit ownership
 - whether every implementation node in `Task Graph` is one behavior change or one tightly related file cluster with a named `Validation Checkpoint`
+- whether every required task-domain slice has a field-valid `Delegation Record` naming a non-Orchestrator owner
+- whether latest `Boundary Violations` is present and contains no unresolved open item
+- whether any confirmed Orchestrator task-domain action occurred during S4-S6
 - whether each implementation node's `Validation Checkpoint` result is present in execution output or runtime evidence
 - whether required separated owners are backed by real independent context boundaries when the run requires them
 - whether `Quality Gate` is explicitly assigned and uses an independent context boundary separate from the implementation context
@@ -316,9 +324,9 @@ Ultra Lite:
 Lite:
 1. Run Intake declares `Run Workspace` before S0
 2. S0 Orchestrator produces Task Brief and opens `Decision Log`; do not enter S1 until both are written
-3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint, declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, assigns explicit non-Orchestrator owners for phase-critical operational actions already in scope, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
+3. S1 Orchestrator creates `CURRENT.md` and the first continuation checkpoint including `Boundary Violations`, declares publish intent or non-publish exploration, records boundary status as satisfied/failed/non-publish, fills the role owner table, writes the run-specific responsibility matrix, binds the required independent context boundaries, assigns explicit non-Orchestrator owners for phase-critical operational actions already in scope, applies the `External-Critic-Only Quality Gate Rule` when needed, and runs `validate_harness_run.py`; for publishable runs, do not enter S2 unless Orchestrator, Implementer, and Quality Gate have separate accountable owners on independent context boundaries, S6/S7/S8 ownership is resolved, and the validator passes
 4. S2 Orchestrator produces Context Pack; do not enter S3 until it is written
-5. S3 Orchestrator writes Task Graph and verifies it matches the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph is written
+5. S3 Orchestrator writes Task Graph plus required Delegation Records and verifies they match the S1 publish-intent and owner-separation record; otherwise return to S1 or stop with a fatal `Boundary Integrity` failure; do not enter S4 until Task Graph and Delegation Records are field-valid
 6. S4 Implementer executes and produces Execution Output Record
 7. S4 Runtime Verifier produces Runtime Evidence Record when correctness depends on pre-existing state or independent dynamic verification
 8. S5 Critic produces Risk Register

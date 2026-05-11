@@ -68,6 +68,7 @@ Rules:
 - if the run imports or continues from prior non-publish exploration, `S0` closure must record the imported material as evidence or context only, and the `Task Brief` must state the current run's publish goal and scope independently
 - `Orchestrator` enforces step-closure gates and must return to the failed step if an artifact is missing, incomplete, field-invalid, or written to an unvalidated equivalent location
 - after auto compact, thread copy, or resume, `Orchestrator` reads `CURRENT.md`, opens the latest checkpoint, re-runs the validator, and then continues from the remaining checklist
+- on resume, `Orchestrator` must also inspect the latest checkpoint's `Boundary Violations` field and resolve open items before task-domain work continues
 - do not infer completion from a compacted summary; re-check upload, restart, live verify, scoped commit, and publish record when those items are in scope
 - do not defer workspace declaration to `S4`, `S7`, or `S8`
 
@@ -162,6 +163,7 @@ For a publishable run that imports prior non-publish exploration, `S1` also clos
 For a publishable run that imports prior non-publish exploration, `S1` also refreshes the latest continuation checkpoint under current `Publish` intent.
 Do not enter `S2` until publish intent, accountable owners, required independent context boundaries, and phase-critical action owners are established.
 If a publishable `Lite` run cannot assign `Orchestrator`, `Implementer`, and `Quality Gate` to separate accountable owners on independent context boundaries, stop before `S2`, re-scope to qualifying `Ultra Lite`, or explicitly record the run as non-publish exploration before continuing.
+Before `S2`, record that task-domain actions are locked until matching `Delegation Record` artifacts exist. `Orchestrator` may inspect run-workspace artifacts for coordination, but may not perform task-domain read, search, grep, file inspection, diagnostic, root-cause, test, log-review, worktree, implementation, verification, publish, commit, check-in, or submit actions for a slice before delegation.
 
 ## Step S2. Context Pack
 
@@ -203,12 +205,33 @@ At minimum, define:
 - named `Outputs` and one unique `Writable Area`
 - implementation tasks sliced to one behavior change or one tightly related file cluster
 - one `Validation Checkpoint` per implementation task, naming the external signal that proves that slice
+- one field-valid `Delegation Record` per diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice
 - human decision points
 
 For `Lite`, the `Writable Area` for every task must be inside the declared `Run Workspace` unless an exception path is explicitly declared in both the `Run Workspace` and this `Task Graph`.
 
+`Delegation Record`:
+
+```text
+Slice ID:
+Owner:
+Context Boundary:
+Scope:
+Allowed Tools:
+Writable Area:
+Expected Evidence:
+Delegated At:
+```
+
+Rules:
+- `Slice ID` must match the `Task Graph` task or checkpoint name.
+- `Owner` must be non-`Orchestrator` and must map to an assigned role/owner context in the `Role Owner Table`.
+- `Writable Area` and `Expected Evidence` must be concrete. `Expected Evidence` must be an artifact path with locator or a checkpoint name.
+- Diagnostic/root-cause/exploratory task-domain reads count as task-domain actions and require a record before they begin.
+
 `Orchestrator` owns `S3` closure.
 `S3` closes only when `Task Graph` is written and field-valid, including named `Outputs`, a unique `Writable Area` for every task, and `Validation Checkpoint` for every implementation task.
+`S3` also closes only when every required task-domain slice has a matching field-valid `Delegation Record`, and the closure checkpoint records that no task-domain action preceded those records.
 If one implementation task would require multiple behavior changes across unrelated areas, `Orchestrator` splits it before `S3` closes instead of relying on `Implementer` to subdivide it during `S4`.
 `S3` closes only after `Orchestrator` writes a fresh continuation checkpoint with an incremented `Checkpoint Seq` and updates `CURRENT.md`.
 For a publishable run that imports prior non-publish exploration, `S3` closes only when the `Task Graph` is refreshed for the current `Publish` intent and does not reuse an exploration task graph as proof of owner separation, gate coverage, or publish readiness.
@@ -219,6 +242,7 @@ For a publishable run that imports prior non-publish exploration, `S3` closes on
 
 If any pre-execution artifact is missing, malformed, or only drafted in memory, return to the owning step before task-specific execution. Do not defer missing pre-execution artifacts to `S7` or `S8`.
 If the S1 validator was not run successfully, return to `S1`; `S4` and `S7` may not be the first place this is discovered.
+Do not enter `S4` if any diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice lacks a field-valid `Delegation Record`, or if the latest checkpoint lists open `Boundary Violations`.
 
 If a publishable run imports prior non-publish exploration, do not enter `S4` until `S0`, `S1`, `S2`, and `S3` have been re-closed under current `Publish` intent. Prior exploration `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` records do not satisfy this entry assertion.
 
@@ -239,6 +263,7 @@ Fact / Inference / Open Question
 
 Execution rules:
 - Do not enter `S4` if the `Task Graph` is missing, stale, or contradicts the `S1` publish-intent or owner-separation record; return to `S1` or `S3` before execution.
+- Do not execute any task-domain action for a slice unless its `Delegation Record` already exists and names the current non-`Orchestrator` owner.
 - Prefer tests, LSP, logs, browsers, deployment state, or other external feedback to establish facts.
 - Any change that depends on pre-existing state must be validated against a real pre-existing state surface by `Runtime Verifier`; if no verifier is active, `Orchestrator` must assign one or record why it is not required.
 - Write intermediate results only to each role's own area.
@@ -247,6 +272,7 @@ Execution rules:
 - Record the result of the task's `Validation Checkpoint` in the execution output or runtime evidence.
 - Mainline context should hold decisions and pointers only; long tool output, grep/read dumps, traces, screenshots, and model transcripts belong in run-workspace artifacts referenced by path and locator.
 - Before and after delegated work that crosses a new independent `Context Boundary`, refresh the continuation checkpoint or record why no refresh was needed.
+- If any task-domain action appears to have preceded delegation, record it in `Boundary Violations`, stop the slice, and return to `S3` or `S1` as appropriate.
 - Treat context pressure, auto compact, or repeated long-history rereads as a signal to checkpoint early and split work.
 - On failure, fall back only to the responsible step.
 
@@ -331,6 +357,7 @@ Rules:
 - follow the canonical gate verdict, field-population, and replay rules from [checklists.md](checklists.md)
 - before returning `Pass`, `Conditional Pass`, guarded-publish, or any publish-readiness verdict, run `python scripts/validate_harness_run.py <run-workspace>` and cite the passing result in the `Gate Decision`; if it fails or was not run, return `Fail` to `S1`
 - before returning any gate verdict, verify that the latest continuation checkpoint is fresh for `S7`; if it is missing or stale, return `Fail` to the owning checkpoint step
+- before returning any gate verdict, inspect `Boundary Violations`; open or confirmed `Orchestrator` task-domain action during `S4` through `S6` blocks with `Boundary Integrity` failure
 
 If `checklists.md` is temporarily unavailable:
 - `Orchestrator` restores that file from version control first
@@ -362,6 +389,8 @@ Before publish, at minimum have:
 - [ ] publishable runs have at least 3 distinct context boundaries backing those owners
 - [ ] tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments were not counted as independent accountable owners by themselves
 - [ ] phase-critical operational actions in scope have explicit non-`Orchestrator` owners assigned before execution
+- [ ] each required task-domain slice has a field-valid `Delegation Record` naming a non-`Orchestrator` owner
+- [ ] latest checkpoint `Boundary Violations` is present and has no open or confirmed unresolved violation
 - [ ] `Context Pack`
 - [ ] `Task Graph`
 - [ ] `Execution Output Record`

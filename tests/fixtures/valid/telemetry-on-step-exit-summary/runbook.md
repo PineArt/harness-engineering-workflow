@@ -29,6 +29,17 @@ Task | Owner | Context Boundary | Depends On | Outputs | Writable Area | Validat
 --- | --- | --- | --- | --- | --- | --- | ---
 Telemetry step summary slice | Implementer | delegate implementation session | S1 Role Owner Table | Execution Output Record | src/telemetry-step-summary-slice | telemetry event log parse check | Return to S3
 
+## Delegation Record
+
+Slice ID: Telemetry step summary slice
+Owner: Implementer
+Context Boundary: delegate implementation session
+Scope: Execute the telemetry step summary slice from the Task Graph.
+Allowed Tools: shell, apply_patch, python validator
+Writable Area: src/telemetry-step-summary-slice
+Expected Evidence: `runbook.md#S7`
+Delegated At: 2026-05-09T09:12:00+08:00
+
 ## S7 Gate Decision
 
 Verdict: Pass

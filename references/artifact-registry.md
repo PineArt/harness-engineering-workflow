@@ -15,6 +15,7 @@ If this file is unavailable during execution, `Orchestrator` restores it from ve
 | `Execution Environment Spec` | `Orchestrator` | `S1` | `Full` |
 | `Context Pack` | `Orchestrator` | `S2` | `Lite`, `Full` |
 | `Task Graph` | `Orchestrator` | `S3` | `Lite`, `Full` |
+| `Delegation Record` | `Orchestrator` assigns; non-`Orchestrator` task owner accepts | `S3` before task-domain action | `Lite`, `Full` for diagnostic, implementation, verification, worktree, publish, commit, check-in, and submit slices |
 | `Workflow Draft` | `Workflow Designer` | `S3` | `Full` |
 | `Execution Output Record` | task owner | `S4` | `Lite`, `Full` |
 | `Runtime Evidence Record` | `Runtime Verifier` | `S4` | `Lite`, `Full` when state-surface validation is required |
@@ -84,6 +85,7 @@ Rules:
 - `Full` runs must also formalize the `Run Workspace` during `S1` in `Execution Environment Spec`.
 - every required artifact for `S0`, `S1`, `S2`, and `S3` must be written and field-valid before the workflow enters the next step.
 - `S1`, `S3`, `S5`, and `S7` close only after a fresh continuation checkpoint is written with an incremented `Checkpoint Seq`.
+- `S3` cannot close until every required task-domain slice has a field-valid `Delegation Record` naming a non-`Orchestrator` owner from the `Role Owner Table`.
 - Before and after delegated work that crosses a new independent `Context Boundary`, `Orchestrator` refreshes the continuation checkpoint or records why no refresh was needed.
 - `S4` may assert that the earlier step-closure gates were satisfied, but it must not be the first point where missing pre-execution artifacts are discovered.
 - exception paths must be declared in `Task Graph` `Writable Area`; in `Full`, also declare them in `Execution Environment Spec` `Artifact Locations`.
@@ -119,6 +121,7 @@ The run-specific mapping must not duplicate the full canonical matrix. It record
 | Role assignment, owner separation, and independent context-boundary requests | `Orchestrator` | `Role Owner Table` and `Task Graph` |
 | Applying `External-Critic-Only Quality Gate Rule` | `Orchestrator` | `Role Owner Table` notes and `Decision Log` |
 | Context packaging and context-overflow split decisions | `Orchestrator` | `Context Pack`, `Task Graph`, or `Decision Log` |
+| Delegation-first lock assignment for task-domain slices | `Orchestrator` records; assigned non-`Orchestrator` owner executes | `Delegation Record` |
 | Implementation slice ownership and active writable-area locks | `Orchestrator` assigns and records; `Implementer` respects assigned scope | `Task Graph`, `Run-Specific Responsibility Matrix`, and `Execution Output Record` |
 | Task execution and execution artifacts | assigned task owner | `Execution Output Record` |
 | Real state-surface validation | `Runtime Verifier`; if absent, `Orchestrator` must assign one or record why not required | `Runtime Evidence Record` or `Decision Log` |
@@ -204,6 +207,7 @@ Last Updated:
 Completed Checklist:
 Remaining Checklist:
 Inflight Delegations:
+Boundary Violations:
 Next Action:
 Blockers:
 Evidence Pointers:
@@ -216,9 +220,11 @@ Field notes:
 - `Last Updated` must include an ISO-like date.
 - `Completed Checklist` and `Remaining Checklist` must make recovery possible without relying on a compacted chat summary.
 - `Inflight Delegations` should use rows like `Owner | Context Boundary | Task | Expected Output | Due`; use `None` only when no delegated task is active.
+- `Boundary Violations` is required. Use `None` only when no open or confirmed violation exists; otherwise list each violation, owner, status, and return step or checkpoint needed to resolve it before continuing.
 - `Evidence Pointers` should include path plus locator, such as line number, heading anchor, artifact name, or commit SHA.
 - `Context Pressure Signal` is warning-only telemetry for context pressure, auto compact, or overload risk.
 - When a run flips from `Non-publish exploration` to `Publish`, the latest checkpoint must be refreshed under the current publish intent and must not carry prior exploration state as closure evidence.
+- After resume, thread copy, or auto compact, read `Boundary Violations` before any next action. Resolve every open item or return to the named step before task-domain work continues.
 
 ### `Task Brief`
 
@@ -291,6 +297,40 @@ Field notes:
 - every implementation node must be sliced to one behavior change or one tightly related file cluster; if one node needs multiple behavioral changes across unrelated areas, split it before `S4`
 - every implementation node must include `Validation Checkpoint`, naming the cheapest external signal that can prove that slice, such as a focused test, typecheck, lint check, API/log probe, browser check, or runtime evidence record
 - `Validation Checkpoint` is execution evidence for `S4` and later `S7`; it is not a second gate verdict and must not replace `Gate Decision`
+- every diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice requires a matching `Delegation Record` before `S3` can close
+- task-domain reads, searches, greps, file inspections, diagnostics, root-cause analysis, test execution, and log review belong to the slice owner once the slice is defined; `Orchestrator` may inspect run-workspace artifacts only for coordination and step-closure validation
+
+### `Delegation Record`
+
+One record is required for each `Task Graph` diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice before any task-domain action for that slice begins.
+
+```text
+Slice ID:
+Owner:
+Context Boundary:
+Scope:
+Allowed Tools:
+Writable Area:
+Expected Evidence:
+Delegated At:
+```
+
+Field notes:
+- `Slice ID` must match the `Task Graph` task or a stable checkpoint name for the slice.
+- `Owner` must be non-`Orchestrator` and must map to an assigned role/owner context in the current `Role Owner Table`.
+- `Context Boundary` must match the assigned owner's `Role Owner Table` context boundary.
+- `Scope` names the diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit action boundary.
+- `Allowed Tools` names the tool surfaces the owner may use. Tools do not become owners.
+- `Writable Area` must be concrete, such as a path, module, artifact location, or explicitly named checkpoint area.
+- `Expected Evidence` must be an artifact path plus locator or a checkpoint name. Vague prose such as "tests passed", "see output", or "evidence" is not field-valid.
+- `Delegated At` must include an ISO-like timestamp or checkpoint locator.
+
+Rules:
+- In `Lite` and `Full`, `Orchestrator` may not perform task-domain action for a slice until its field-valid `Delegation Record` exists in the run workspace and names a non-`Orchestrator` owner.
+- Task-domain actions include read, search, grep, file inspection, diagnostic work, root-cause analysis, test execution, log review, worktree operation, implementation, verification, publish, commit, check-in, and submit when they are about the task slice rather than run-artifact coordination.
+- `S3` cannot close until every required slice has a field-valid `Delegation Record`.
+- If a confirmed `Orchestrator` task-domain action occurred during `S4` through `S6`, `Quality Gate` must block at `S7` with `Boundary Integrity` failure.
+- Boundary violation reports belong in the latest `Continuation Packet` `Boundary Violations` field until resolved.
 
 ### `Workflow Draft`
 

@@ -22,6 +22,8 @@ Other files should reference these gates by name instead of redefining them.
 - [ ] every concrete workflow action has an owner, using the `Responsibility Matrix` in `artifact-registry.md` when ownership is not otherwise explicit
 - [ ] `Lite` and `Full` wrote a `Run-Specific Responsibility Matrix` during `S1` before `S2`
 - [ ] S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, and submit actions resolve to owners through the S1 matrix or canonical defaults
+- [ ] `Lite` and `Full` have field-valid `Delegation Record` artifacts before `S3` closes for every required task-domain diagnostic, implementation, verification, worktree, publish, commit, check-in, or submit slice
+- [ ] latest `Continuation Packet` includes `Boundary Violations`, and resume has resolved every open item before task-domain work continues
 - [ ] each role has an explicit owner
 - [ ] any `Lite` workflow intended for publish uses separate accountable owners for `Orchestrator`, `Implementer`, and `Quality Gate`
 - [ ] any `Lite` or `Full` workflow intended for publish records S1 boundary status as satisfied before `S2`; it is not conditional, deferred, provisional, or "must be fixed before publish"
@@ -46,6 +48,9 @@ Other files should reference these gates by name instead of redefining them.
 - Do not use `validate_harness_run.py --skip-telemetry` as publish/pass gate evidence; it is only for non-publish historical audits or migration work.
 - Use `Fail` for any publishable `Lite` or `Full` run that imports or continues from non-publish exploration if `S0` did not record the imported material as evidence or context only, or if `S0` through `S3` were not re-closed under current `Publish` intent before task-specific execution.
 - Use `Fail` for any `Lite` or `Full` run if the `Run-Specific Responsibility Matrix` was not written during `S1` before `S2`, or if phase-critical S6, S7, S8, gate, rework, re-gate, replay, publish, commit, check-in, or submit ownership cannot be resolved from that matrix or the canonical defaults.
+- Use `Fail` for any `Lite` or `Full` run if `S3` closed while a required task-domain slice lacked a field-valid `Delegation Record` naming a non-`Orchestrator` owner.
+- Use `Fail` for any `Lite` or `Full` run if a confirmed `Orchestrator` task-domain action occurred during `S4` through `S6`, including task-domain read, search, grep, file inspection, diagnostic, root-cause analysis, test execution, log review, worktree operation, implementation, verification, publish, commit, check-in, or submit.
+- Use `Fail` for any resumed run whose latest checkpoint lacks `Boundary Violations`, or whose open `Boundary Violations` were not resolved before continuing.
 - Use `Fail` for any publishable `Lite` or `Full` run whose S1 boundary status is conditional, deferred, provisional, or depends on a later gate before it can become true.
 - Use `Fail` for any publishable `Lite` or `Full` run that inherits `Boundary Status`, `Gate Decision`, publish-readiness claims, `Context Pack`, or `Task Graph` records from non-publish exploration instead of establishing them in the current run.
 - For `Lite` final publish, use `Fail` if publish intent was not declared before `S2`, if the workflow does not assign separate accountable owners to `Orchestrator`, `Implementer`, and `Quality Gate`, if the required independent context boundaries cannot be established before `S2`, or if the required owner separation exists only on paper without real context separation. These are fatal `Boundary Integrity` failures; tell the user final-result quality is uncontrollable.
@@ -128,6 +133,9 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Orchestrator` enforced step-closure gates and returned to the failed step on missing or field-invalid artifacts
 - [ ] `validate_harness_run.py <run-workspace>` passed at `S1` closure / `S2` entry, and again before any `S7` publish/pass/readiness verdict
 - [ ] `Run-Specific Responsibility Matrix` was written during `S1`, before `S2`, and resolves phase-critical action owners
+- [ ] every required task-domain slice has a field-valid `Delegation Record` before the first task-domain action for that slice
+- [ ] `S3` closure reflection checks that no task-domain action preceded the relevant `Delegation Record`
+- [ ] latest continuation checkpoint includes `Boundary Violations`, and all open items were resolved before resume continued
 - [ ] every fallback, replay, restore, publish, escalation, and context-split action has an accountable owner
 - [ ] single-owner `Lite` is treated as a fatal `Boundary Integrity` failure and does not proceed as a publish workflow
 - [ ] if a publishable run imports or continues from non-publish exploration, `S0` records that material as evidence or context only
@@ -139,6 +147,7 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Quality Gate` uses an independent context boundary separate from the implementation context for any publishable `Lite` or `Full` workflow
 - [ ] `Orchestrator` does not own `Implementer` or `Quality Gate` for any publishable `Lite` or `Full` workflow
 - [ ] `Orchestrator` did not silently execute phase-critical `Implementer`, `Runtime Verifier`, publish/commit/submit, or `Quality Gate` actions assigned to another owner
+- [ ] `Orchestrator` did not perform task-domain read, search, grep, file inspection, diagnostic, root-cause analysis, test execution, log review, worktree operation, implementation, verification, publish, commit, check-in, or submit actions for a slice before a `Delegation Record` named a non-`Orchestrator` owner
 - [ ] `Main Codex` using another execution surface is not counted as a distinct `Implementer` owner from `Main Codex` orchestration
 - [ ] `Implementer` and `Quality Gate` have different owners for any publishable `Lite` workflow
 - [ ] publishable `Lite` workflows are backed by at least 3 distinct independent context boundaries for `Orchestrator`, `Implementer`, and `Quality Gate`
@@ -165,6 +174,7 @@ This file is canonical for gate verdict rules and replay semantics.
 - [ ] `Full` has `Run Workspace` before `S0`, `Task Brief` before `S1`, `Execution Environment Spec`, role owner table, and run-specific responsibility matrix before `S2`, `Context Pack` before `S3`, and `Task Graph` plus active `Workflow Draft` before `S4`
 - [ ] each implementation node in `Task Graph` is one behavior change or one tightly related file cluster
 - [ ] each implementation node in `Task Graph` has a named `Validation Checkpoint`
+- [ ] each required task-domain node in `Task Graph` has a matching `Delegation Record` with concrete writable area and expected evidence
 - [ ] each implementation node's `Validation Checkpoint` result is present in execution output or runtime evidence before gate review
 - [ ] `Lite` and `Full` have a field-valid latest `Continuation Packet`
 - [ ] each step has inputs

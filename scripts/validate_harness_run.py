@@ -73,17 +73,39 @@ CHECKPOINT_REQUIRED_FIELDS = [
     "Completed Checklist",
     "Remaining Checklist",
     "Inflight Delegations",
+    "Boundary Violations",
     "Next Action",
     "Blockers",
     "Evidence Pointers",
     "Context Pressure Signal",
 ]
-CHECKPOINT_ALLOW_NONE_FIELDS = {"Inflight Delegations", "Blockers", "Context Pressure Signal"}
+CHECKPOINT_ALLOW_NONE_FIELDS = {"Inflight Delegations", "Boundary Violations", "Blockers", "Context Pressure Signal"}
 PATH_TOKEN_RE = re.compile(
     r"(?i)(?:[A-Za-z]:[\\/])?(?:[\w.-]+[\\/])+[\w.@-]+|[\w.@-]+\.(?:md|txt|jsonl?|py|ya?ml|tsx?|jsx?|css|html|log|patch)"
 )
 LOCATOR_TOKEN_RE = re.compile(r"(?i)(:\d+|#[\w.-]+|@[0-9a-f]{7,40}|\bcommit\s+[0-9a-f]{7,40}\b|\bartifact\s*:)")
 CONTEXT_PRESSURE_RE = re.compile(r"(?i)\b(auto[- ]?compact|compacted|context pressure|context overload|token pressure)\b")
+DELEGATION_RECORD_REQUIRED_FIELDS = [
+    "Slice ID",
+    "Owner",
+    "Context Boundary",
+    "Scope",
+    "Allowed Tools",
+    "Writable Area",
+    "Expected Evidence",
+    "Delegated At",
+]
+DELEGATION_SLICE_RE = re.compile(
+    r"(?i)\b("
+    r"implement(?:ation|er)?|diagnostic|root[- ]?cause|explor(?:e|atory|ation)|"
+    r"verif(?:y|ication)|runtime|test(?:ing| execution)?|log review|worktree|"
+    r"publish|commit|check[- ]?in|submit"
+    r")\b"
+)
+VAGUE_EVIDENCE_RE = re.compile(
+    r"(?i)^\s*(?:tbd|todo|unknown|n/?a|none|see above|see output|validator passed|"
+    r"tests passed|done|proof|evidence|record|checkpoint|artifact|pass(?:ed)?)\s*\.?\s*$"
+)
 KNOWN_ROLE_KEYS = {
     "orchestrator",
     "implementer",
@@ -123,6 +145,12 @@ class RoleRow:
     boundary: str
     shared: str = ""
     notes: str = ""
+
+
+@dataclass
+class DelegationRecord:
+    fields: dict[str, str]
+    source: str
 
 
 @dataclass
@@ -345,6 +373,17 @@ def _task_graph_text(text: str) -> str:
         pattern = re.compile(r"(?ims)^#{1,4}\s*Task Graph\b.*?(?=^#{1,4}\s*(?:S[0-9]|Step S[0-9])\b|\Z)")
         matches = [match.group(0) for match in pattern.finditer(text)]
     return "\n\n".join(matches)
+
+
+def _delegation_record_texts(docs: list[MarkdownDoc]) -> list[tuple[str, str]]:
+    records: list[tuple[str, str]] = []
+    pattern = re.compile(
+        r"(?ims)^#{1,4}\s*(?:Delegation Record|Delegation Records)\b.*?(?=^#{1,4}\s|\Z)"
+    )
+    for doc in docs:
+        for index, match in enumerate(pattern.finditer(doc.text), start=1):
+            records.append((f"{doc.rel}#delegation-record-{index}", match.group(0)))
+    return records
 
 
 def load_run(root: Path) -> RunArtifacts:
@@ -595,6 +634,174 @@ def _latest_checkpoint(run: RunArtifacts) -> ContinuationCheckpoint | None:
     return run.checkpoints[-1]
 
 
+def _parse_task_graph_rows(task_graph_text: str) -> tuple[list[dict[str, str]], bool, list[str]]:
+    task_rows: list[dict[str, str]] = []
+    current: dict[str, str] = {}
+    table_headers: list[str] = []
+    saw_task_graph_table = False
+    in_fence = False
+    for raw in task_graph_text.splitlines():
+        line = raw.strip()
+        if re.match(r"(?i)^#{1,4}\s*Delegation Records?\b", line):
+            break
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not line:
+            continue
+        field_match = re.match(r"(?i)^(task|owner|context boundary|depends on|outputs|writable area|validation checkpoint|fallback)\s*:\s*(.*)$", line)
+        if field_match:
+            key = field_match.group(1).strip().lower()
+            value = field_match.group(2).strip()
+            current[key] = value
+            if key == "fallback":
+                task_rows.append(current)
+                current = {}
+            continue
+        if "|" in line and "---" not in line:
+            cells = [_clean_cell(c) for c in line.strip("|").split("|")]
+            header_candidates = {"task", "owner", "context boundary", "depends on", "outputs", "writable area", "validation checkpoint", "fallback"}
+            if cells and cells[0].lower() == "task":
+                table_headers = [cell.lower() for cell in cells]
+                saw_task_graph_table = True
+                continue
+            if len(cells) >= 2:
+                saw_task_graph_table = True
+                row = {}
+                if table_headers:
+                    for idx, header in enumerate(table_headers):
+                        if header in header_candidates:
+                            row[header] = cells[idx] if idx < len(cells) else ""
+                else:
+                    row = {
+                        "task": cells[0],
+                        "owner": cells[1] if len(cells) > 1 else "",
+                        "context boundary": cells[2] if len(cells) > 2 else "",
+                        "depends on": cells[3] if len(cells) > 3 else "",
+                        "outputs": cells[4] if len(cells) > 4 else "",
+                        "writable area": cells[5] if len(cells) > 5 else "",
+                        "validation checkpoint": cells[6] if len(cells) > 6 else "",
+                        "fallback": cells[7] if len(cells) > 7 else "",
+                    }
+                task_rows.append(row)
+    if current and current not in task_rows:
+        task_rows.append(current)
+    return task_rows, saw_task_graph_table, table_headers
+
+
+def _parse_delegation_records(run: RunArtifacts) -> list[DelegationRecord]:
+    records: list[DelegationRecord] = []
+    for source, text in _delegation_record_texts(run.docs):
+        fields = _parse_fields(text)
+        if any(field in fields for field in DELEGATION_RECORD_REQUIRED_FIELDS):
+            records.append(DelegationRecord(fields=fields, source=source))
+            continue
+        table_headers: list[str] = []
+        for raw in text.splitlines():
+            line = raw.strip()
+            if "|" not in line or "---" in line:
+                continue
+            cells = [_clean_cell(c) for c in line.strip("|").split("|")]
+            lowered = [cell.lower() for cell in cells]
+            if "slice id" in lowered and "owner" in lowered:
+                table_headers = cells
+                continue
+            if table_headers and len(cells) >= 2:
+                row = {
+                    table_headers[idx]: cells[idx] if idx < len(cells) else ""
+                    for idx in range(len(table_headers))
+                }
+                records.append(DelegationRecord(fields=row, source=source))
+    return records
+
+
+def _record_owner_matches_role(record: DelegationRecord, role: RoleRow) -> bool:
+    owner = _norm(record.fields.get("Owner", ""))
+    boundary = _norm(record.fields.get("Context Boundary", ""))
+    role_names = {_norm(role.role), _norm(role.owner)}
+    return bool(owner and boundary and owner in role_names and boundary == _norm(role.boundary))
+
+
+def _is_concrete_writable_area(value: str) -> bool:
+    stripped = value.strip()
+    if _field_empty(stripped):
+        return False
+    return bool(PATH_TOKEN_RE.search(stripped) or re.search(r"(?i)\b(run workspace|<run-workspace>|workspace/|exec-plans/|tests/fixtures/|src/|references/|scripts/)\b", stripped))
+
+
+def _is_concrete_expected_evidence(value: str) -> bool:
+    stripped = value.strip()
+    if _field_empty(stripped):
+        return False
+    if VAGUE_EVIDENCE_RE.fullmatch(stripped):
+        return False
+    return _has_actionable_evidence_pointer(stripped) or bool(re.search(r"(?i)\bcheckpoint\s+[A-Za-z0-9_.:/# -]+\b", stripped))
+
+
+def _slice_key(value: str) -> str:
+    return _norm(value)
+
+
+def _record_matches_task(record: DelegationRecord, row: dict[str, str]) -> bool:
+    slice_id = record.fields.get("Slice ID", "")
+    task = row.get("task", "")
+    if not slice_id or not task:
+        return False
+    return _slice_key(slice_id) == _slice_key(task)
+
+
+def _requires_delegation_record(row: dict[str, str]) -> bool:
+    owner = row.get("owner", "")
+    if _role_key(owner) == "implementer":
+        return True
+    combined = " ".join([row.get("task", ""), owner, row.get("outputs", ""), row.get("validation checkpoint", "")])
+    return bool(DELEGATION_SLICE_RE.search(combined))
+
+
+def _validate_delegation_records(run: RunArtifacts, task_rows: list[dict[str, str]], errors: list[str]) -> None:
+    records = _parse_delegation_records(run)
+    required_rows = [row for row in task_rows if _requires_delegation_record(row)]
+    if required_rows and not records:
+        errors.append("S3_DELEGATION_RECORD_MISSING: task-domain slices require field-valid Delegation Records before S3 closes.")
+
+    for record in records:
+        label = record.fields.get("Slice ID", record.source)
+        for field in DELEGATION_RECORD_REQUIRED_FIELDS:
+            if field not in record.fields:
+                errors.append(f"S3_DELEGATION_RECORD_FIELD_MISSING: `{label}` missing `{field}`.")
+            elif _field_empty(record.fields[field]):
+                errors.append(f"S3_DELEGATION_RECORD_FIELD_EMPTY: `{label}` field `{field}` must contain run-specific data.")
+
+        owner = record.fields.get("Owner", "")
+        if _role_key(owner) == "orchestrator" or _norm(owner) == _norm(run.roles.get("orchestrator", RoleRow("", "", "")).owner):
+            errors.append(f"S3_DELEGATION_RECORD_ORCHESTRATOR_OWNER: `{label}` names Orchestrator as owner.")
+        if owner and _role_key(owner) not in KNOWN_ROLE_KEYS:
+            errors.append(f"S3_DELEGATION_RECORD_OWNER_UNRECOGNIZED: `{label}` owner `{owner}` must map to an assigned role.")
+        elif owner and _role_key(owner) not in run.roles:
+            errors.append(f"S3_DELEGATION_RECORD_OWNER_UNASSIGNED: `{label}` owner `{owner}` is not assigned in S1.")
+        elif owner and not _record_owner_matches_role(record, run.roles[_role_key(owner)]):
+            errors.append(f"S3_DELEGATION_RECORD_BOUNDARY_MISMATCH: `{label}` owner/context boundary does not match the S1 role table.")
+
+        if "Writable Area" in record.fields and not _is_concrete_writable_area(record.fields["Writable Area"]):
+            errors.append(f"S3_DELEGATION_RECORD_WRITABLE_AREA_VAGUE: `{label}` must name a concrete writable area.")
+        if "Expected Evidence" in record.fields and not _is_concrete_expected_evidence(record.fields["Expected Evidence"]):
+            errors.append(f"S3_DELEGATION_RECORD_EVIDENCE_VAGUE: `{label}` must name an artifact path plus locator or checkpoint name.")
+
+    for row in required_rows:
+        task = row.get("task", "").strip() or "<unnamed task>"
+        matches = [record for record in records if _record_matches_task(record, row)]
+        if not matches:
+            errors.append(f"S3_DELEGATION_RECORD_MISSING_FOR_SLICE: `{task}` has no matching Delegation Record.")
+            continue
+        for record in matches:
+            if row.get("owner") and _role_key(record.fields.get("Owner", "")) != _role_key(row.get("owner", "")):
+                errors.append(f"S3_DELEGATION_RECORD_OWNER_MISMATCH: `{task}` Delegation Record owner does not match the Task Graph owner.")
+            if row.get("context boundary") and _norm(record.fields.get("Context Boundary", "")) != _norm(row.get("context boundary", "")):
+                errors.append(f"S3_DELEGATION_RECORD_CONTEXT_MISMATCH: `{task}` Delegation Record context boundary does not match the Task Graph.")
+            if row.get("writable area") and _norm(record.fields.get("Writable Area", "")) != _norm(row.get("writable area", "")):
+                errors.append(f"S3_DELEGATION_RECORD_WRITABLE_AREA_MISMATCH: `{task}` Delegation Record writable area does not match the Task Graph.")
+
+
 def _validate_continuation(run: RunArtifacts, stage: str) -> tuple[list[str], list[str]]:
     errors: list[str] = list(run.checkpoint_errors)
     warnings: list[str] = []
@@ -831,55 +1038,7 @@ def validate_run(
         if needs_s3_validation:
             errors.append("S3_TASK_GRAPH_MISSING: no S3 Task Graph section found.")
     else:
-        task_rows = []
-        current: dict[str, str] = {}
-        table_headers: list[str] = []
-        saw_task_graph_table = False
-        in_fence = False
-        for raw in run.task_graph_text.splitlines():
-            line = raw.strip()
-            if line.startswith("```"):
-                in_fence = not in_fence
-                continue
-            if in_fence or not line:
-                continue
-            field_match = re.match(r"(?i)^(task|owner|context boundary|depends on|outputs|writable area|validation checkpoint|fallback)\s*:\s*(.*)$", line)
-            if field_match:
-                key = field_match.group(1).strip().lower()
-                value = field_match.group(2).strip()
-                current[key] = value
-                if key == "fallback":
-                    task_rows.append(current)
-                    current = {}
-                continue
-            if "|" in line and "---" not in line:
-                cells = [_clean_cell(c) for c in line.strip("|").split("|")]
-                header_candidates = {"task", "owner", "context boundary", "depends on", "outputs", "writable area", "validation checkpoint", "fallback"}
-                if cells and cells[0].lower() == "task":
-                    table_headers = [cell.lower() for cell in cells]
-                    saw_task_graph_table = True
-                    continue
-                if len(cells) >= 2:
-                    saw_task_graph_table = True
-                    row = {}
-                    if table_headers:
-                        for idx, header in enumerate(table_headers):
-                            if header in header_candidates:
-                                row[header] = cells[idx] if idx < len(cells) else ""
-                    else:
-                        row = {
-                            "task": cells[0],
-                            "owner": cells[1] if len(cells) > 1 else "",
-                            "context boundary": cells[2] if len(cells) > 2 else "",
-                            "depends on": cells[3] if len(cells) > 3 else "",
-                            "outputs": cells[4] if len(cells) > 4 else "",
-                            "writable area": cells[5] if len(cells) > 5 else "",
-                            "validation checkpoint": cells[6] if len(cells) > 6 else "",
-                            "fallback": cells[7] if len(cells) > 7 else "",
-                        }
-                    task_rows.append(row)
-        if current and current not in task_rows:
-            task_rows.append(current)
+        task_rows, saw_task_graph_table, table_headers = _parse_task_graph_rows(run.task_graph_text)
 
         if saw_task_graph_table and "validation checkpoint" not in table_headers and not any(
             "validation checkpoint" in row for row in task_rows
@@ -923,6 +1082,8 @@ def validate_run(
                 warnings.append(
                     f"S3_TASK_ROW_WEAK_CHECKPOINT: implementation node `{task_value or idx}` uses a checkpoint that may be too vague."
                 )
+
+        _validate_delegation_records(run, task_rows, errors)
 
     if all(role in run.roles for role in required_roles):
         orch = run.roles["orchestrator"]
@@ -980,6 +1141,8 @@ def _run_self_tests(script: Path) -> int:
         "tests/fixtures/invalid/stale-continuation-current": False,
         "tests/fixtures/invalid/tool-gate-boundary": False,
         "tests/fixtures/invalid/bad-boundary-status": False,
+        "tests/fixtures/invalid/missing-delegation-record.md": False,
+        "tests/fixtures/invalid/orchestrator-delegation-record.md": False,
         "tests/fixtures/invalid/empty-task-checkpoint-cell": False,
         "tests/fixtures/invalid/missing-task-checkpoint": False,
         "tests/fixtures/invalid/telemetry-mode-missing": False,

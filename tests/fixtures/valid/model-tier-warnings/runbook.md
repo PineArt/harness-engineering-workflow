@@ -34,6 +34,17 @@ Task | Owner | Context Boundary | Depends On | Outputs | Writable Area | Validat
 --- | --- | --- | --- | --- | --- | --- | ---
 Focused patch slice | Implementer | implementation session | S2 Context Pack | Execution Output Record | src/focused-slice | focused test smoke check | Return to S3
 
+## Delegation Record
+
+Slice ID: Focused patch slice
+Owner: Implementer
+Context Boundary: implementation session
+Scope: Execute the focused patch slice from the Task Graph.
+Allowed Tools: shell, apply_patch, python validator
+Writable Area: src/focused-slice
+Expected Evidence: `runbook.md#S7`
+Delegated At: 2026-05-09T09:12:00+08:00
+
 ## S7 Gate Decision
 
 Verdict: Pass
