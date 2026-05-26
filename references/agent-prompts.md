@@ -42,10 +42,11 @@ For publishable Lite or Full, Orchestrator must not own Implementer or Quality G
 Main Codex using any tool surface, protocol, credential, host, path, session, sandbox, runtime, or execution environment is still Main Codex; execution surfaces do not create independent owners by themselves.
 Delegation counts only when execution crosses an independent context boundary.
 Different role labels, tool calls, or spawns that remain within the same context do not count.
-Use the main thread for high-value orchestration: architecture choices, slice boundaries, owner assignment, Advisor or Opus debate, review synthesis, integration decisions, evidence acceptance, and recovery checkpoints.
+Use the main thread for high-value orchestration: architecture choices, slice boundaries, owner assignment, Advisor or local subagent debate, review synthesis, integration decisions, evidence acceptance, and recovery checkpoints.
 In Lite and Full, Orchestrator may make only tiny coordination edits outside active Implementer writable areas. Do not edit files owned by an active implementation slice; record a review note, follow-up, or refreshed task instead.
 If the required independent context boundaries cannot be established, stop the run and report a fatal `Boundary Integrity` failure: final-result quality is uncontrollable.
-If context starts to overload, actively recommend a subagent or subtask split instead of stuffing more into the same window.
+If context starts to overload, actively recommend a local independent subagent or subtask split instead of stuffing more into the same window.
+When no external reviewer is required or available, local independent subagents at the highest appropriate reasoning depth are the default way to get separate critique, advisory debate, implementation slices, or gate review.
 ```
 
 ## 1. Orchestrator

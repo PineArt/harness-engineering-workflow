@@ -24,7 +24,7 @@ TOOL_OWNER_RE = re.compile(
     r")\b",
     re.I,
 )
-CLAUDE_IMPLEMENTER_RE = re.compile(r"\b(claude|opus|sonnet|haiku)\b", re.I)
+EXTERNAL_IMPLEMENTER_RE = re.compile(r"\b(claude|opus|sonnet|haiku)\b", re.I)
 EXPLICIT_MODEL_EXCEPTION_RE = re.compile(
     r"\b(?:model|implementer|implementation)[- ]?(?:exception|override)\b|"
     r"\buser[- ]?approved[- ]?(?:model|implementer|implementation)[- ]?(?:exception|override)\b",
@@ -966,9 +966,9 @@ def validate_run(
 
     if "implementer" in run.roles:
         impl_text = _model_posture_text(run.roles["implementer"])
-        if CLAUDE_IMPLEMENTER_RE.search(impl_text) and not EXPLICIT_MODEL_EXCEPTION_RE.search(impl_text):
+        if EXTERNAL_IMPLEMENTER_RE.search(impl_text) and not EXPLICIT_MODEL_EXCEPTION_RE.search(impl_text):
             warnings.append(
-                "S1_IMPLEMENTER_MODEL_POSTURE: Implementer appears to be Claude/Opus-family; prefer GPT/Codex for implementation or record an explicit user-approved exception in S1 notes."
+                "S1_IMPLEMENTER_MODEL_POSTURE: Implementer appears to use an external non-Codex model family; prefer local Codex subagents for implementation or record an explicit user-approved exception in S1 notes."
             )
 
     if "advisor" in run.roles:
@@ -990,7 +990,7 @@ def validate_run(
         gate_text = _model_posture_text(run.roles["quality_gate"])
         if SMALL_MODEL_RE.search(gate_text):
             warnings.append(
-                "S1_GATE_MODEL_TIER_WEAK: Quality Gate appears to use a small/fast model; final gate decisions should use a stronger model or explicitly justify the exception."
+                "S1_GATE_MODEL_TIER_WEAK: Quality Gate appears to use a small/fast model; final gate decisions should use a strong model or local subagent with highest appropriate reasoning depth, or explicitly justify the exception."
             )
 
     for source_role in ["source_analyst", "critic"]:

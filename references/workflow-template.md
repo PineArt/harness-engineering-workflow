@@ -178,6 +178,7 @@ Method:
 - define status, version, and log fields
 - define read and write boundaries
 - record whether the required independent context boundaries can be established for the run
+- record whether local independent subagents can satisfy the needed boundaries when no external reviewer is required
 - define `Role Owner Table`
 - define `Run-Specific Responsibility Matrix` for phase-critical action ownership
 - mark whether the run is intended for final publish or is non-publish exploration before `S2`
@@ -210,6 +211,7 @@ Acceptance:
 - a `Full` workflow intended to pass final gate and publish uses at least 3 distinct owners
 - a publishable `Full` workflow maps those owners to at least 3 distinct independent context boundaries during `S1`, before downstream execution starts
 - each delegated context boundary maps to only one owner within the run
+- local subagents may serve as those owners when they run in independent contexts and produce role-owned artifacts
 - different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement
 - if the required independent context boundaries cannot be established, stop as a fatal `Boundary Integrity` failure and tell the user final-result quality is uncontrollable
 - in any publishable `Lite` or `Full` workflow, `Orchestrator` does not own `Implementer` or `Quality Gate`

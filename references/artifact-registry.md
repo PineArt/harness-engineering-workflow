@@ -250,6 +250,7 @@ Field notes:
 - `Boundary Status` is a run-level field. For publishable `Lite` and `Full`, it may not be `Conditional`, deferred, provisional, or "must be fixed before publish"; use `Satisfied` only when all required owner/context separation is already established before `S1` closes, otherwise use `Failed` and stop or record `Non-publish`
 - `Owner` names the accountable person, agent, or execution owner for that role; context labels alone do not satisfy ownership
 - `Context Boundary` names the execution context used by the owner; this is the hard separation record for delegation
+- A local subagent may be an `Owner` when it has an independent context boundary and accepts responsibility for the role artifact.
 - Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments may describe `Context Boundary` or evidence, but they are not owners. `Owner` must identify the accountable executor that can accept the task, produce the required artifact, and be reassigned or replaced.
 - `Shared?` is `Yes` or `No`
 - within a run, one `Context Boundary` may map to only one `Owner`

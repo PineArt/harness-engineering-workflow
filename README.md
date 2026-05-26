@@ -11,6 +11,7 @@ The repository root is the installable skill folder.
 - Invocation style: explicit only
 - Trigger form: `$harness-engineering-workflow`
 - Delegation mode: independent context boundaries; role labels, tool calls, or spawns that stay in the same context do not count
+- Local independent subagents are acceptable owners when they have distinct context boundaries, assigned responsibilities, and artifact outputs.
 
 Use this skill when the task needs a reusable workflow with tiering from `Ultra Lite` to `Full`, plus role ownership, context packaging, gate review, and result acceptance.
 
@@ -123,6 +124,7 @@ The skill starts with a `Fast Tier Check` and then routes work into `Ultra Lite`
 - Tool surfaces, protocols, credentials, hosts, paths, sessions, sandboxes, runtimes, and execution environments are context or evidence, not independent accountable owners by themselves.
 - `Advisor` may provide direction, debate, or options, but does not satisfy `Implementer`, `Critic`, `Quality Gate`, or publish separation; do not reuse the same accountable owner for `Advisor` and those phase-critical roles.
 - If an external context covers `Critic` but not `Quality Gate` while the main context owns implementation, apply the `External-Critic-Only Quality Gate Rule` in [references/checklists.md](./references/checklists.md).
+- When no external context is required, prefer local independent subagents at the highest appropriate reasoning depth for critique, advisory debate, implementation slices, and gate review.
 - Do not relabel missing required independent context boundaries or single-owner `Lite` as exploration-only. Treat them as fatal `Boundary Integrity` failures and tell the user final-result quality is uncontrollable.
 - Small/fast models may be assigned to bounded mechanical slices, read-only probes, smoke checks, or clear runtime evidence collection. Do not use them for final gate decisions, source-fidelity-heavy review, ambiguous architecture decisions, or risky implementation across unrelated files unless S1/S3 records an explicit exception.
 

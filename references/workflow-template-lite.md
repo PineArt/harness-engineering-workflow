@@ -115,6 +115,8 @@ Notes:
 - A `Lite` workflow intended to pass final gate and publish must assign `Orchestrator`, `Implementer`, and `Quality Gate` to explicit accountable owners backed by at least 3 distinct independent context boundaries during `S1`, before `S2`.
 - One `Context Boundary` may not back more than one `Owner` in the same run.
 - Different role labels, tool calls, or spawns that remain within the same context do not satisfy this requirement.
+- A local subagent is acceptable for `Implementer`, `Critic`, `Advisor`, `Runtime Verifier`, or `Quality Gate` when it has an independent context boundary, an assigned owner, and a concrete artifact output.
+- When no external reviewer is required or available, default to local independent subagents with the highest appropriate reasoning depth for separated critique, debate, or gate review.
 - If the required independent context boundaries cannot be established, stop the run as a fatal `Boundary Integrity` failure. Do not relabel the same Lite run as exploration-only; tell the user final-result quality is uncontrollable until boundary separation is restored.
 - Single-owner execution in `Lite` is a fatal `Boundary Integrity` failure.
 - `Runtime Verifier` may be added in `Lite` without forcing immediate escalation when the workflow still centers on one primary implementation path.

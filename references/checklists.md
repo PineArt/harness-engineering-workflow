@@ -60,7 +60,7 @@ Other files should reference these gates by name instead of redefining them.
 
 ### External-Critic-Only Quality Gate Rule
 
-When an external context such as Opus is assigned to `Critic` but not `Quality Gate` while the main context owns implementation:
+When an external context or any independent critic subagent is assigned to `Critic` but not `Quality Gate` while the main context owns implementation:
 - `Lite`: `Orchestrator` assigns `Quality Gate` to a separate independent context boundary.
 - `Full`: `Orchestrator` assigns `Quality Gate` to a third independent context boundary.
 - `Orchestrator` defaults to a local independent subagent when no separate gate owner is already available.
